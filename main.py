@@ -67,7 +67,17 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 from flask import Flask, request, jsonify, render_template, send_file
-from tvDatafeed import TvDatafeed, Interval
+try:
+    from tvDatafeed import TvDatafeed, Interval
+except Exception:
+    TvDatafeed = None
+    class Interval:
+        in_1_minute = "1m"
+        in_5_minute = "5m"
+        in_15_minute = "15m"
+        in_30_minute = "30m"
+        in_1_hour = "1h"
+        in_daily = "1d"
 if getattr(sys, 'frozen', False):
     # Running inside PyInstaller bundle (EXE)
     template_folder = os.path.join(sys._MEIPASS, 'templates')
