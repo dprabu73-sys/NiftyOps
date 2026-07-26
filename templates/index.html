@@ -860,21 +860,23 @@ Data automatically syncs live to your Google Sheet &amp; Dashboard with zero man
 <tr>
 <th>Date</th>
 <th>09:28 Close</th>
-<th>Call Strike</th>
-<th>Put Strike</th>
-<th>Call Prev 15:15 Close (15m HA)</th>
-<th>Call 09:15 Close (15m HA)</th>
-<th>Call 09:30 Close (15m HA)</th>
-<th>Call 09:45 Open (15m HA)</th>
-<th>Put Prev 15:15 Close (15m HA)</th>
-<th>Put 09:15 Close (15m HA)</th>
-<th>Put 09:30 Close (15m HA)</th>
-<th>Put 09:45 Open (15m HA)</th>
+<th>🟢 Call Strike (CE)</th>
+<th>🔴 Put Strike (PE)</th>
+<th>CE Strategy Status</th>
+<th>CE P&amp;L</th>
+<th>PE Strategy Status</th>
+<th>PE P&amp;L</th>
+<th>Winner</th>
+<th>Net P&amp;L</th>
+<th>Call Prev 15:15 HA</th>
+<th>Call 09:15 HA</th>
+<th>Put Prev 15:15 HA</th>
+<th>Put 09:15 HA</th>
 </tr>
 </thead>
 <tbody id="previewSummaryBody">
 <tr>
-<td colspan="12" class="symbol-empty">No extraction data loaded. Start an extraction job to see live preview.</td>
+<td colspan="14" class="symbol-empty">No extraction data loaded. Start an extraction job to see live preview.</td>
 </tr>
 </tbody>
 </table>
@@ -957,26 +959,39 @@ document.getElementById('tabCandles').classList.add('active');
 function renderPreviewSummaryTable(rows) {
 const body = document.getElementById('previewSummaryBody');
 if (!rows || rows.length === 0) {
-body.innerHTML = `<tr><td colspan="12" class="symbol-empty">No strategy summary rows processed yet.</td></tr>`;
+body.innerHTML = `<tr><td colspan="14" class="symbol-empty">No strategy summary rows processed yet.</td></tr>`;
 return;
 }
 
 let html = '';
 rows.forEach(r => {
+const cOutcome = r['Call Outcome'] || 'No Signal';
+const cPnl = r['Call P&L'] !== undefined ? parseFloat(r['Call P&L']) : 0;
+const pOutcome = r['Put Outcome'] || 'No Signal';
+const pPnl = r['Put P&L'] !== undefined ? parseFloat(r['Put P&L']) : 0;
+const winner = r['Strategy Winner'] || 'None';
+const netPnl = r['Strategy P&L'] !== undefined ? parseFloat(r['Strategy P&L']) : (cPnl + pPnl);
+
+const cClass = cPnl > 0 ? 'text-up' : (cPnl < 0 ? 'text-down' : '');
+const pClass = pPnl > 0 ? 'text-up' : (pPnl < 0 ? 'text-down' : '');
+const netClass = netPnl > 0 ? 'text-up' : (netPnl < 0 ? 'text-down' : '');
+
 html += `
 <tr>
 <td style="font-weight:600;color:var(--text-primary);">${r['Date']}</td>
 <td style="font-family:'JetBrains Mono',monospace;color:var(--text-primary);">${r['09:28 Close'] ? parseFloat(r['09:28 Close']).toFixed(2) : ''}</td>
 <td class="text-up" style="font-weight:600;">${r['Call Strike']}</td>
 <td class="text-down" style="font-weight:600;">${r['Put Strike']}</td>
+<td style="font-size:12px;font-weight:500;">${cOutcome}</td>
+<td class="${cClass}" style="font-weight:600;">${cPnl !== 0 ? (cPnl > 0 ? '+' : '') + '₹' + cPnl : '₹0'}</td>
+<td style="font-size:12px;font-weight:500;">${pOutcome}</td>
+<td class="${pClass}" style="font-weight:600;">${pPnl !== 0 ? (pPnl > 0 ? '+' : '') + '₹' + pPnl : '₹0'}</td>
+<td style="font-weight:600;color:${winner==='Call'?'#34d399':(winner==='Put'?'#f87171':'var(--text-secondary)')};">${winner}</td>
+<td class="${netClass}" style="font-weight:700;">${netPnl !== 0 ? (netPnl > 0 ? '+' : '') + '₹' + netPnl : '₹0'}</td>
 <td>${r['Call Prev 15:15 Close (15m HA)'] !== undefined && r['Call Prev 15:15 Close (15m HA)'] !== "" ? parseFloat(r['Call Prev 15:15 Close (15m HA)']).toFixed(2) : ''}</td>
 <td>${r['Call 09:15 Close (15m HA)'] !== undefined && r['Call 09:15 Close (15m HA)'] !== "" ? parseFloat(r['Call 09:15 Close (15m HA)']).toFixed(2) : ''}</td>
-<td>${r['Call 09:30 Close (15m HA)'] !== undefined && r['Call 09:30 Close (15m HA)'] !== "" ? parseFloat(r['Call 09:30 Close (15m HA)']).toFixed(2) : ''}</td>
-<td>${r['Call 09:45 Open (15m HA)'] !== undefined && r['Call 09:45 Open (15m HA)'] !== "" ? parseFloat(r['Call 09:45 Open (15m HA)']).toFixed(2) : ''}</td>
 <td>${r['Put Prev 15:15 Close (15m HA)'] !== undefined && r['Put Prev 15:15 Close (15m HA)'] !== "" ? parseFloat(r['Put Prev 15:15 Close (15m HA)']).toFixed(2) : ''}</td>
 <td>${r['Put 09:15 Close (15m HA)'] !== undefined && r['Put 09:15 Close (15m HA)'] !== "" ? parseFloat(r['Put 09:15 Close (15m HA)']).toFixed(2) : ''}</td>
-<td>${r['Put 09:30 Close (15m HA)'] !== undefined && r['Put 09:30 Close (15m HA)'] !== "" ? parseFloat(r['Put 09:30 Close (15m HA)']).toFixed(2) : ''}</td>
-<td>${r['Put 09:45 Open (15m HA)'] !== undefined && r['Put 09:45 Open (15m HA)'] !== "" ? parseFloat(r['Put 09:45 Open (15m HA)']).toFixed(2) : ''}</td>
 </tr>`;
 });
 body.innerHTML = html;
@@ -1149,50 +1164,75 @@ let html = `
 <th>Date</th>
 <th>09:28 Close</th>
 <th>Expiry</th>
-<th>&#x1F7E2; Call Strike</th>
+<th>🟢 CALL (CE) Strike</th>
 <th>CALL Symbol</th>
-<th>TV Chart (Call)</th>
-<th>&#x1F534; Put Strike</th>
+<th>🔴 PUT (PE) Strike</th>
 <th>PUT Symbol</th>
-<th>TV Chart (Put)</th>
+<th>CE Strategy Status</th>
+<th>PE Strategy Status</th>
+<th>Strategy Winner</th>
+<th>Charts</th>
 </tr></thead>
 <tbody>`;
 
 rows.slice().reverse().forEach(r => {
-const isToday  = r.date === today;
-const expired  = isExpired(r.expiry);
-const expLabel = r.expiry_label || r.expiry;
+const isToday  = r.date === today || r.Date === today;
+const rDate = r.Date || r.date;
+const rClose = r['09:28 Close'] || r.close_0928;
+const rExp = r.Expiry || r.expiry;
+const rCallStrike = r['Call Strike'] || r.call_strike;
+const rCallSym = r['Call Symbol'] || r.call_sym;
+const rPutStrike = r['Put Strike'] || r.put_strike;
+const rPutSym = r['Put Symbol'] || r.put_sym;
+const cOutcome = r['Call Outcome'] || '—';
+const cPnl = r['Call P&L'] !== undefined ? parseFloat(r['Call P&L']) : 0;
+const pOutcome = r['Put Outcome'] || '—';
+const pPnl = r['Put P&L'] !== undefined ? parseFloat(r['Put P&L']) : 0;
+const winner = r['Strategy Winner'] || '—';
+const expired  = isExpired(rExp);
+const expLabel = r.expiry_label || rExp;
+
+const cPnlClass = cPnl > 0 ? 'text-up' : (cPnl < 0 ? 'text-down' : '');
+const pPnlClass = pPnl > 0 ? 'text-up' : (pPnl < 0 ? 'text-down' : '');
 
 html += `
 <tr class="${isToday ? 'today-row' : ''}">
-<td style="color:${isToday ? 'var(--success)':'var(--text-primary)'};
-font-weight:${isToday ? 600 : 400};">
-${r.date}${isToday ? ' &#x1F7E2;' : ''}
+<td style="color:${isToday ? 'var(--success)':'var(--text-primary)'};font-weight:${isToday ? 600 : 400};">
+${rDate}${isToday ? ' 🟢' : ''}
 </td>
 <td style="color:var(--text-primary);font-family:'JetBrains Mono',monospace;">
-${r.close_0928.toLocaleString('en-IN',{minimumFractionDigits:2})}
+${parseFloat(rClose).toLocaleString('en-IN',{minimumFractionDigits:2})}
 </td>
 <td style="color:${expired ? 'var(--text-secondary)':'#a5b4fc'};font-size:11px;">
 ${expLabel}${expired ? ' <span style="color:#6b7280;">(expired)</span>' : ''}
 </td>
-<td style="color:#34d399;font-weight:600;">${r.call_strike}</td>
+<td style="color:#34d399;font-weight:600;">${rCallStrike}</td>
 <td>
-<span class="sym-badge call-badge"
-onclick="copyText('${r.call_sym}',this)"
-title="Click to copy">
-&#x1F4CB; ${r.call_sym}
+<span class="sym-badge call-badge" onclick="copyText('${rCallSym}',this)" title="Click to copy">
+📋 ${rCallSym}
 </span>
 </td>
-<td>${expired ? expiredBadge() : tvLink(r.call_sym,'Call','')}</td>
-<td style="color:#f87171;font-weight:600;">${r.put_strike}</td>
+<td style="color:#f87171;font-weight:600;">${rPutStrike}</td>
 <td>
-<span class="sym-badge put-badge"
-onclick="copyText('${r.put_sym}',this)"
-title="Click to copy">
-&#x1F4CB; ${r.put_sym}
+<span class="sym-badge put-badge" onclick="copyText('${rPutSym}',this)" title="Click to copy">
+📋 ${rPutSym}
 </span>
 </td>
-<td>${expired ? expiredBadge() : tvLink(r.put_sym,'Put','')}</td>
+<td class="${cPnlClass}" style="font-size:12px;">
+${cOutcome}${cPnl !== 0 ? ` (${cPnl > 0 ? '+' : ''}₹${cPnl})` : ''}
+</td>
+<td class="${pPnlClass}" style="font-size:12px;">
+${pOutcome}${pPnl !== 0 ? ` (${pPnl > 0 ? '+' : ''}₹${pPnl})` : ''}
+</td>
+<td style="font-weight:600;color:${winner==='Call'?'#34d399':(winner==='Put'?'#f87171':'var(--text-secondary)')};">
+${winner}
+</td>
+<td>
+<div style="display:flex;gap:4px;">
+${expired ? expiredBadge() : `${tvLink(rCallSym,'CE','')}`}
+${expired ? '' : `${tvLink(rPutSym,'PE','')}`}
+</div>
+</td>
 </tr>`;
 });
 

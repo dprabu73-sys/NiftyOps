@@ -493,20 +493,6 @@ def extraction_thread(task_id, username, password, symbol, exchange, interval_na
             })
             tv._TvDatafeed__ws_headers = ws_headers
             
-            # Patch layer-2: set_auth_token message
-            tv.token = 'unauthorized_user_token'
-        else:
-            if is_invalid_token:
-                log_task(task_id, "WARNING: Ignored invalid submitted session token (bookmarklet code detected).", "warn")
-            if username and password:
-                log_task(task_id, f"Logging in with credentials for user '{username}'...", "info")
-                tv = TvDatafeed(username=username, password=password)
-                if tv.token == 'unauthorized_user_token':
-                    log_task(task_id, "WARNING: Login failed (CAPTCHA block). Add TV_SESSION_ID to .env for full access.", "warn")
-            else:
-                log_task(task_id, "No credentials specified. Connecting as guest...", "info")
-                tv = TvDatafeed()
-            
         interval = INTERVAL_MAP.get(interval_name, Interval.in_1_minute)
         
         # Mapped custom intervals for options calculations
@@ -516,9 +502,8 @@ def extraction_thread(task_id, username, password, symbol, exchange, interval_na
         # Enforce 1-Minute interval as HA Extractor requires specific timestamps
         actual_interval = Interval.in_1_minute
         if live_today_only:
-            # Enforce at least 1000 bars so we always cover today's open and yesterday's close
             actual_n_bars = max(n_bars, 1000)
-            log_task(task_id, f"LIVE MODE: Fetching today's data Ã¢â‚¬â€ requesting {actual_n_bars} bars (1-min)...", "info")
+            log_task(task_id, f"LIVE MODE: Fetching active session data — requesting {actual_n_bars} bars (1-min)...", "info")
         else:
             actual_n_bars = max(n_bars, 500)
             log_task(task_id, f"HA OHLC Extractor mode active -> Enforcing 1-Minute interval, requesting {actual_n_bars} bars to cover multiple trading days...", "info")
@@ -536,31 +521,11 @@ def extraction_thread(task_id, username, password, symbol, exchange, interval_na
                 interval=actual_interval,
                 n_bars=actual_n_bars
             )
-        
+            
         if data is None or data.empty:
-            log_task(task_id, "Historical data fetch failed with active credentials. Retrying with a clean guest session...", "warn")
-            guest_tv = TvDatafeed()
-            data = safe_get_hist(
-                tv=guest_tv,
-                symbol=symbol,
-                exchange=exchange,
-                interval=actual_interval,
-                n_bars=actual_n_bars
-            )
-            if data is not None and not data.empty:
-                tv = guest_tv  # Switch to guest session for subsequent index queries
-                log_task(task_id, "Successfully connected via guest session fallback.", "info")
-            else:
-                log_task(task_id, "TradingView connection failed. Falling back to yfinance instant NSE feed...", "warn")
-                data = fetch_yfinance_data(symbol=symbol, interval=actual_interval, n_bars=actual_n_bars)
-                if data is not None and not data.empty:
-                    log_task(task_id, "Successfully retrieved data via yfinance instant feed!", "success")
-                else:
-                    raise ValueError(f"No historical data returned. Please verify that symbol '{symbol}' is valid.")
+            raise ValueError(f"No historical data returned. Please verify that symbol '{symbol}' is valid.")
             
         log_task(task_id, f"Successfully retrieved {len(data)} data bars.", "success")
-        
-        # Sort chronologically to compute Heikin Ashi correctly
         data = data.sort_index()
         
         # Calculate Heikin Ashi values
@@ -594,6 +559,11 @@ def extraction_thread(task_id, username, password, symbol, exchange, interval_na
         ist_tz = timezone(timedelta(hours=5, minutes=30))
         today_ist = datetime.now(ist_tz).strftime('%Y-%m-%d')
         if live_today_only:
+            # Check dates that actually have a 09:28 bar
+            dates_with_0928 = [d for d in all_unique_dates if not df_temp[(df_temp['ist_date'] == d) & (df_temp['ist_time'] == '09:28')].empty]
+            if today_ist not in dates_with_0928:
+                today_ist = dates_with_0928[-1] if dates_with_0928 else (all_unique_dates[-1] if all_unique_dates else today_ist)
+            log_task(task_id, f"LIVE MODE: Active Trading Session (Weekend Auto-Rollback to last market day) — {today_ist}", "info")
             # If today is not in the data yet, fallback to the last day in the data
             if today_ist not in all_unique_dates:
                 today_ist = all_unique_dates[-1] if all_unique_dates else today_ist

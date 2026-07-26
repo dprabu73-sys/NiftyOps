@@ -30,7 +30,7 @@ fun WebViewScreen(
     val sharedPrefs = remember { context.getSharedPreferences("niftyops_prefs", Context.MODE_PRIVATE) }
     
     var serverUrl by remember { 
-        mutableStateOf(sharedPrefs.getString("server_url", "http://192.168.1.100:5001") ?: "http://192.168.1.100:5001") 
+        mutableStateOf(sharedPrefs.getString("server_url", "https://niftyops.onrender.com") ?: "https://niftyops.onrender.com") 
     }
     
     var showSettingsDialog by remember { mutableStateOf(false) }
