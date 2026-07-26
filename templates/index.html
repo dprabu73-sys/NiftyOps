@@ -617,7 +617,80 @@ color: var(--text-primary);
 border-color: var(--accent);
 box-shadow: 0 0 12px var(--accent-glow);
 }
-</style>
+
+/* ── Touch-Optimized Mobile Responsiveness (768px & below) ── */
+@media (max-width: 768px) {
+body {
+padding: 12px 8px 80px 8px !important;
+}
+.container {
+gap: 16px !important;
+}
+header {
+flex-direction: column !important;
+align-items: flex-start !important;
+gap: 12px !important;
+padding-bottom: 12px !important;
+}
+.logo-section h1 {
+font-size: 20px !important;
+}
+.nav-links {
+width: 100% !important;
+margin-left: 0 !important;
+justify-content: space-between !important;
+gap: 6px !important;
+overflow-x: auto !important;
+padding-bottom: 4px !important;
+}
+.nav-btn {
+padding: 8px 12px !important;
+font-size: 12px !important;
+white-space: nowrap !important;
+flex: 1 !important;
+text-align: center !important;
+}
+.workspace {
+grid-template-columns: 1fr !important;
+gap: 16px !important;
+}
+.card {
+padding: 16px 14px !important;
+border-radius: 14px !important;
+}
+.form-row {
+grid-template-columns: 1fr !important;
+gap: 12px !important;
+}
+input, select {
+height: 48px !important;
+font-size: 15px !important;
+padding: 0 14px !important;
+}
+.btn-extract {
+height: 54px !important;
+font-size: 16px !important;
+border-radius: 12px !important;
+}
+.preview-panel {
+padding: 14px !important;
+border-radius: 14px !important;
+}
+.preview-header {
+flex-direction: column !alignment;
+align-items: flex-start !important;
+}
+.tab-buttons {
+width: 100% !important;
+justify-content: space-between !important;
+}
+.tab-btn {
+flex: 1 !important;
+text-align: center !important;
+padding: 8px 6px !important;
+font-size: 12px !important;
+}
+}
 </head>
 <body>
 <div class="container">
