@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tradingviewextractor.ui.terminal.LiveTerminalScreen
 import com.example.tradingviewextractor.ui.extractor.NativeExtractorScreen
+import com.example.tradingviewextractor.ui.analyzer.NativeAnalyzerScreen
 import com.example.tradingviewextractor.ui.main.MainScreenViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,7 +84,7 @@ fun BottomNavScreen(
             when (selectedTab) {
                 0 -> LiveTerminalScreen(viewModel = viewModel)
                 1 -> NativeExtractorScreen(viewModel = viewModel)
-                2 -> SimplePlaceholderScreen("Strategy Analyzer & Dual Backtest", "📈 Run historical backtest and calculate Sharpe Ratio & Drawdown.")
+                2 -> NativeAnalyzerScreen(viewModel = viewModel)
                 3 -> SimplePlaceholderScreen("Settings & Connection", "⚙️ Server IP: https://niftyops.onrender.com\nDesigned & Developed by Prabu Dhanapal")
             }
         }
