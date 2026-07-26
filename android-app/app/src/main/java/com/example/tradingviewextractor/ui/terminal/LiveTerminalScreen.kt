@@ -55,7 +55,7 @@ fun LiveTerminalScreen(
         ) {
             Column {
                 Text("NIFTY OPS TERMINAL", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = textPrimary)
-                Text("Live Market & Strategy Engine", fontSize = 12.sp, color = textSecondary)
+                Text("Original TradingView Strategy Engine", fontSize = 12.sp, color = textSecondary)
             }
             Box(
                 modifier = Modifier
@@ -82,7 +82,7 @@ fun LiveTerminalScreen(
             colors = CardDefaults.cardColors(containerColor = cardBg),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
+                .height(280.dp)
                 .border(1.dp, cardBorder, RoundedCornerShape(12.dp))
         ) {
             AndroidView(
@@ -118,8 +118,8 @@ fun LiveTerminalScreen(
 
         // PE & CE Strategy Signals Header
         Text(
-            "LIVE STRATEGY SIGNALS (09:28 ENGINE)",
-            fontSize = 13.sp,
+            "ORIGINAL TRADINGVIEW STRATEGY (2ND BREACH & SETUP SL)",
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             color = textSecondary
         )
@@ -139,26 +139,28 @@ fun LiveTerminalScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("🟢 CALL OPTION (CE)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = successColor)
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = latestRecord?.let { "Strike: ${it.callOption}" } ?: "Strike: 24,300 CE",
+                        text = latestRecord?.let { "Strike: ${it.callOption} CE" } ?: "Strike: 24,300 CE",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = textPrimary
                     )
-                    Text(
-                        text = "Signal: BUY ACTIVE",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = successColor,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                    Text(
-                        text = "Target: +25 Pts | SL: Candle Low",
-                        fontSize = 11.sp,
-                        color = textSecondary,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Baseline: 24,450.00", fontSize = 11.sp, color = textSecondary)
+                    Text("Entry Trigger: 2nd Breach (> Baseline)", fontSize = 11.sp, color = successColor, fontWeight = FontWeight.SemiBold)
+                    Text("Target (+25P): 24,486.30", fontSize = 11.sp, color = successColor)
+                    Text("Stop Loss: Setup Candle Low", fontSize = 11.sp, color = textSecondary)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(successColor.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🎯 TARGET HIT (+25 Pts)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = successColor)
+                    }
                 }
             }
 
@@ -171,26 +173,28 @@ fun LiveTerminalScreen(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text("🔴 PUT OPTION (PE)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = errorColor)
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = latestRecord?.let { "Strike: ${it.putOption}" } ?: "Strike: 24,600 PE",
+                        text = latestRecord?.let { "Strike: ${it.putOption} PE" } ?: "Strike: 24,600 PE",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = textPrimary
                     )
-                    Text(
-                        text = "Signal: NO SETUP",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = textSecondary,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                    Text(
-                        text = "Target: +25 Pts | SL: Candle Low",
-                        fontSize = 11.sp,
-                        color = textSecondary,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Baseline: 24,420.00", fontSize = 11.sp, color = textSecondary)
+                    Text("Entry Trigger: 2nd Breach (< Baseline)", fontSize = 11.sp, color = errorColor, fontWeight = FontWeight.SemiBold)
+                    Text("Target (-25P): 24,395.00", fontSize = 11.sp, color = textSecondary)
+                    Text("Stop Loss: Setup Candle High", fontSize = 11.sp, color = textSecondary)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(6.dp))
+                            .padding(vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("⚪ AWAITING BREACH", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = textSecondary)
+                    }
                 }
             }
         }

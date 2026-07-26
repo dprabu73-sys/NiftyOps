@@ -500,4 +500,165 @@ class MainScreenViewModel : ViewModel() {
             }
         }
     }
+
+    // --- EXACT ORIGINAL TRADINGVIEW STRATEGY ENGINE ---
+    data class StrategyResult(
+        val baseline: Double,
+        val setupCandleLow: Double?,
+        val entryTime: String?,
+        val entryPrice: Double?,
+        val targetPrice: Double?,
+        val exitReason: String, // "TARGET HIT", "SL HIT", "NO SETUP", "NO ENTRY", "FALLBACK ENTRY"
+        val exitTime: String?,
+        val exitPrice: Double?,
+        val pnlPoints: Double
+    )
+
+    fun evaluateOriginalTvStrategy(
+        candles: List<RawCandle>,
+        baseline: Double,
+        targetPoints: Double = 25.0,
+        slType: String = "close"
+    ): StrategyResult {
+        // Filter out early 09:15 and 09:20 candles (scan starts 09:25 AM onwards)
+        val scanCandles = candles.filter { it.time !in listOf("09:15", "09:20") }
+        if (scanCandles.isEmpty()) {
+            return StrategyResult(baseline, null, null, null, null, "NO DATA", null, null, 0.0)
+        }
+
+        // 1. Setup Candle Scanner: Monitor for a candle completely below baseline (High < Baseline)
+        var setupCandleIdx: Int? = null
+        var lockedSl: Double? = null
+        for (i in scanCandles.indices) {
+            if (scanCandles[i].high < baseline) {
+                setupCandleIdx = i
+                lockedSl = scanCandles[i].low
+                break
+            }
+        }
+
+        // 2. Entry Breach Scanner: Scan for 2nd breach of baseline
+        var firstBreachIdx: Int? = null
+        var entryIdx: Int? = null
+        var entryPrice: Double? = null
+        var entryTime: String? = null
+        var entryType = "auto"
+
+        for (i in scanCandles.indices) {
+            val highVal = maxOf(scanCandles[i].open, scanCandles[i].high, scanCandles[i].low, scanCandles[i].close)
+            if (highVal > baseline) {
+                if (firstBreachIdx == null) {
+                    firstBreachIdx = i
+                } else if (entryIdx == null) {
+                    entryIdx = i
+                    entryPrice = scanCandles[i].open
+                    entryTime = scanCandles[i].time
+                    break
+                }
+            }
+        }
+
+        // Fallback: only first breach, no 2nd confirmation candle
+        if (firstBreachIdx != null && entryIdx == null) {
+            val c = scanCandles[firstBreachIdx]
+            entryIdx = firstBreachIdx
+            entryPrice = maxOf(c.open, c.high, c.low, c.close)
+            entryTime = c.time
+            entryType = "fallback"
+        }
+
+        if (entryIdx == null || entryPrice == null) {
+            return StrategyResult(
+                baseline = baseline,
+                setupCandleLow = lockedSl,
+                entryTime = null,
+                entryPrice = null,
+                targetPrice = null,
+                exitReason = "NO ENTRY",
+                exitTime = null,
+                exitPrice = null,
+                pnlPoints = 0.0
+            )
+        }
+
+        // 3. Target Price Calculation: Target = Entry Candle High + Target Points (+25 Pts)
+        val entryCandleHigh = scanCandles[entryIdx].high
+        val targetPrice = entryCandleHigh + targetPoints
+
+        var targetHitIdx: Int? = null
+        var targetHitTime: String? = null
+        var slHitIdx: Int? = null
+        var slHitTime: String? = null
+        var slExitPrice: Double? = null
+
+        // Scan for Target Hit
+        for (i in entryIdx until scanCandles.size) {
+            if (scanCandles[i].high >= targetPrice) {
+                targetHitIdx = i
+                targetHitTime = scanCandles[i].time
+                break
+            }
+        }
+
+        // Scan for SL Hit (active ONLY if setup candle was identified)
+        if (setupCandleIdx != null && lockedSl != null) {
+            val startIdx = maxOf(entryIdx, setupCandleIdx + 1)
+            for (i in startIdx until scanCandles.size) {
+                val c = scanCandles[i]
+                val triggerVal = if (slType == "low") c.low else c.close
+                if (triggerVal < lockedSl) {
+                    slHitIdx = i
+                    slHitTime = c.time
+                    slExitPrice = minOf(c.open, c.high, c.low, c.close)
+                    break
+                }
+            }
+        }
+
+        // Resolve Target vs SL Resolution
+        return when {
+            targetHitIdx != null && (slHitIdx == null || targetHitIdx <= slHitIdx) -> {
+                StrategyResult(
+                    baseline = baseline,
+                    setupCandleLow = lockedSl,
+                    entryTime = entryTime,
+                    entryPrice = entryPrice,
+                    targetPrice = targetPrice,
+                    exitReason = "TARGET HIT",
+                    exitTime = targetHitTime,
+                    exitPrice = targetPrice,
+                    pnlPoints = targetPoints
+                )
+            }
+            slHitIdx != null -> {
+                val exitPx = slExitPrice ?: (lockedSl ?: baseline)
+                val pnl = exitPx - entryPrice
+                StrategyResult(
+                    baseline = baseline,
+                    setupCandleLow = lockedSl,
+                    entryTime = entryTime,
+                    entryPrice = entryPrice,
+                    targetPrice = targetPrice,
+                    exitReason = "SL HIT",
+                    exitTime = slHitTime,
+                    exitPrice = exitPx,
+                    pnlPoints = pnl
+                )
+            }
+            else -> {
+                StrategyResult(
+                    baseline = baseline,
+                    setupCandleLow = lockedSl,
+                    entryTime = entryTime,
+                    entryPrice = entryPrice,
+                    targetPrice = targetPrice,
+                    exitReason = "IN TRADE / OPEN",
+                    exitTime = null,
+                    exitPrice = null,
+                    pnlPoints = 0.0
+                )
+            }
+        }
+    }
+
 }
