@@ -731,25 +731,22 @@ Overrides bar count to 500 (just enough for today). Best for live intraday use a
 <input type="number" id="strike_offset" value="100" min="1" step="50" placeholder="e.g. 100">
 </div>
 
-<!-- Output File Name -->
-<div class="form-group">
-<label>Output Excel Filename</label>
-<input type="text" id="filename" value="nifty_data.xlsx" placeholder="e.g. nifty_data.xlsx">
-</div>
+<!-- Output File Name (Hidden/Auto-Generated) -->
+<input type="hidden" id="filename" value="NiftyOps_AutoSync.xlsx">
 
 <!-- Google Sheets Live Sync -->
 <div class="form-group" style="border-top: 1px solid var(--card-border); padding-top: 14px; margin-top: 5px;">
-<label style="color: #a5b4fc;">Google Sheets Webhook URL (Optional)</label>
-<input type="text" id="google_sheet_url" placeholder="https://script.google.com/macros/s/.../exec">
+<label style="color: #a5b4fc;">Google Sheets Webhook URL (Auto-Sync)</label>
+<input type="text" id="google_sheet_url" value="https://script.google.com/macros/s/AKfycbzeINdkKQbkx80cqa1n3e4r60aH9A6Ilmf0AQ93QMmLi9E6wNmt9qTakY85LpCqjZH5cw/exec" placeholder="https://script.google.com/macros/s/.../exec">
 <p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
-If configured, data automatically syncs live to your Google Sheet!
+Data automatically syncs live to your Google Sheet &amp; Dashboard with zero manual downloads!
 </p>
 </div>
 
 <!-- Trigger Button -->
 <button class="btn-extract" id="extractBtn" onclick="startExtraction()">
 <div class="spinner"></div>
-<span id="btnText">Extract & Download Excel</span>
+<span id="btnText">&#x26A1; Start Live Engine &amp; Auto-Sync</span>
 </button>
 </div>
 </div>
@@ -1277,10 +1274,10 @@ if (pollData.status === 'completed') {
 clearInterval(pollInterval);
 setExtractingState(false);
 document.getElementById('previewLiveBadge').style.display = 'none';
-addLog('Job finished. Export completed successfully. Starting file download...', 'success');
+addLog('⚡ Live Engine active! Data automatically synced to Dashboard & Google Sheets.', 'success');
+addLog(`<a href="/api/download/${taskId}" target="_blank" style="color:#818cf8;font-weight:600;text-decoration:underline;">📥 Optional: Click here if you wish to download the Excel Workbook</a>`, 'info');
 document.getElementById('symbolStatusText').textContent =
-`Extraction complete. ${symData.symbols ? symData.symbols.length : ''} trading day(s) processed.`;
-window.location.href = `/api/download/${taskId}`;
+`Live Auto-Sync Active. ${symData.symbols ? symData.symbols.length : ''} session(s) synced.`;
 } else if (pollData.status === 'failed') {
 clearInterval(pollInterval);
 setExtractingState(false);
