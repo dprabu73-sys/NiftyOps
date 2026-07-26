@@ -15,7 +15,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
-import com.example.tradingviewextractor.ui.main.MainScreen
+import com.example.tradingviewextractor.ui.launcher.LauncherScreen
+import com.example.tradingviewextractor.ui.bottomnav.BottomNavScreen
 import kotlinx.coroutines.delay
 
 @Composable
@@ -30,16 +31,19 @@ fun MainNavigation() {
         entry<Splash> {
           SplashScreen(
             onNavigateToMain = {
-              backStack.add(Main)
-              backStack.remove(Splash) // Remove splash from backstack so back button exits the app
+              backStack.add(Launcher)
+              backStack.remove(Splash)
             }
           )
         }
-        entry<Main> {
-          MainScreen(
-            onItemClick = { navKey -> backStack.add(navKey) },
-            modifier = Modifier.safeDrawingPadding().padding(16.dp)
+        entry<Launcher> {
+          LauncherScreen(
+            onLaunchTerminal = { backStack.add(MainApp(initialTab = 0)) },
+            onLaunchExtractor = { backStack.add(MainApp(initialTab = 1)) }
           )
+        }
+        entry<MainApp> { key ->
+          BottomNavScreen(initialTab = key.initialTab)
         }
       },
   )
