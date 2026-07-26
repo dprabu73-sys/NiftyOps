@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -54,18 +55,17 @@ fun LauncherScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier.padding(24.dp)
         ) {
-            // App Logo Section
-            Box(
+            // Custom LSP App Logo Section
+            androidx.compose.foundation.Image(
+                painter = androidx.compose.ui.res.painterResource(id = com.example.niftyops.R.drawable.app_logo),
+                contentDescription = "LSP Logo",
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
                 modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        Brush.linearGradient(listOf(accentColor, Color(0xFF818CF8))),
-                        RoundedCornerShape(20.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("⚡", fontSize = 40.sp, color = Color.White)
-            }
+                    .size(92.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(cardBg)
+                    .border(2.dp, successColor, RoundedCornerShape(20.dp))
+            )
 
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
@@ -79,7 +79,14 @@ fun LauncherScreen(
                     "Auto-Pilot Trade Terminal",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = textSecondary
+                    color = successColor
+                )
+                Text(
+                    "Designed & Developed by Prabu Dhanapal",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = textSecondary,
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -141,7 +148,7 @@ fun LauncherScreen(
                         }
                         Column(modifier = Modifier.weight(1f)) {
                             Text("Standalone HA Extractor", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textPrimary)
-                            Text("Local Yahoo Finance data fetcher & Heikin Ashi levels logger (Offline)", fontSize = 11.sp, color = textSecondary)
+                            Text("Direct Visual Dashboard with live temporary memory sync (Zero file downloads)", fontSize = 11.sp, color = textSecondary)
                         }
                     }
                 }

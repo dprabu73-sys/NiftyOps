@@ -24,7 +24,7 @@ fun MainNavigation() {
         entry<Launcher> {
           LauncherScreen(
             onLaunchTerminal = { backStack.add(WebViewScreen) },
-            onLaunchExtractor = { backStack.add(Main) }
+            onLaunchExtractor = { backStack.add(WebViewScreen) }
           )
         }
         entry<Main> {
