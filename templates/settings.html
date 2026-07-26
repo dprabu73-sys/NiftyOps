@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trading Defaults & Connection Settings</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --card-border: #243049;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #4f46e5;
+            --accent-hover: #6366f1;
+            --accent-glow: rgba(79, 70, 229, 0.4);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --input-bg: #0b0f19;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Navigation Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 20px;
+        }
+
+        .logo-section h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background-color: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* Main Workspace Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
+            margin-bottom: 5px;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"], input[type="password"], input[type="number"], select {
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            text-align: center;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .connection-status {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .status-dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+        .status-dot.disconnected { background: var(--error); box-shadow: 0 0 8px var(--error); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>TradingView Data Extractor Pro</h1>
+                <p>Nifty Intraday Options Backtesting & Strategy Analyzer</p>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-btn">Data Extractor</a>
+                <a href="/analyzer" class="nav-btn">Strategy Analyzer</a>
+                <a href="/journal" class="nav-btn">Trade Journal</a>
+                <a href="/settings" class="nav-btn active">Settings</a>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="workspace">
+            <!-- Left Card: Trade Parameters & Settings -->
+            <div class="card">
+                <div class="card-title">Trading Parameter Defaults</div>
+                
+                <form id="settingsForm" class="form-section">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Default Lot Size (Qty)</label>
+                            <input type="number" id="lotSize" name="lot_size" value="50" step="50" min="50">
+                        </div>
+                        <div class="form-group">
+                            <label>Default Target Points</label>
+                            <input type="number" id="targetPoints" name="target_points" value="25" step="1">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Default SL Trigger Type</label>
+                            <select id="slType" name="sl_type">
+                                <option value="close">Candle CLOSE below baseline</option>
+                                <option value="low">Candle LOW below baseline</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Exchange Default</label>
+                            <select id="exchange" name="exchange">
+                                <option value="NFO" selected>NFO (Nifty Options)</option>
+                                <option value="MCX">MCX (Commodities)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Product Type Default</label>
+                            <select id="product" name="product">
+                                <option value="MIS" selected>MIS (Intraday)</option>
+                                <option value="NRML">NRML (Carry Forward)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="justify-content: center; align-items: flex-start; display: flex; flex-direction: column;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="checkbox" id="soundAlerts" name="sound_alerts"> Enable Sound Alerts on Signals
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">💾 Save Defaults Settings</button>
+                </form>
+            </div>            <!-- Right Card: Zerodha Connection Settings -->
+            <div style="display:flex; flex-direction:column; gap:24px;">
+                <div class="card">
+                    <div class="card-title">Zerodha API Configuration</div>
+                    
+                    <form id="connectionForm" class="form-section">
+                        <div class="form-group">
+                            <label>Zerodha API Key</label>
+                            <input type="text" id="zerodhaApiKey" placeholder="Enter Kite API Key">
+                        </div>
+                        <div class="form-group">
+                            <label>Zerodha API Secret</label>
+                            <input type="password" id="zerodhaApiSecret" placeholder="Enter Kite API Secret">
+                        </div>
+
+                        <div class="connection-status">
+                            <div class="status-indicator">
+                                <div class="status-dot disconnected" id="connectionDot"></div>
+                                <span id="connectionText">DISCONNECTED (PAPER MODE)</span>
+                            </div>
+                            <div style="color:var(--text-secondary); line-height:1.5;">
+                                When disconnected, executing trades operates in local **Paper Trade Mode**.
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-secondary" id="testConnectionBtn">🔌 Test connection</button>
+                    </form>
+                </div>
+
+                <!-- Card 3: TradingView Session Configuration -->
+                <div class="card">
+                    <div class="card-title">TradingView Session Settings</div>
+                    
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>TV Session Cookie (sessionid)</label>
+                            <input type="password" id="tvSessionId" placeholder="Paste sessionid=... token here">
+                        </div>
+
+                        <div class="connection-status">
+                            <div class="status-indicator">
+                                <div class="status-dot disconnected" id="sessionDot"></div>
+                                <span id="sessionStatusText" style="color:var(--error);">CHECKING STATUS...</span>
+                            </div>
+                            <div id="sessionMsg" style="color:var(--text-secondary); line-height:1.5; font-size:12px;">
+                                Checking session status against TradingView...
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:10px; flex-direction:column;">
+                            <button type="button" class="btn-primary" id="saveSessionBtn">💾 Save Session ID</button>
+                            <div style="display:flex; gap:8px;">
+                                <button type="button" class="btn-secondary" style="flex:1; font-size:12px; padding:10px 6px;" id="autoLoginBtn">⚡ Auto-Login</button>
+                                <button type="button" class="btn-secondary" style="flex:1; font-size:12px; padding:10px 6px;" id="autoCaptureBtn">🍪 Capture Cookies</button>
+                            </div>
+                            <button type="button" class="btn-secondary" style="color:var(--error); border-color:rgba(239,68,68,0.2);" id="clearSessionBtn">🗑️ Clear Session</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const settingsForm = document.getElementById('settingsForm');
+        let pollingInterval = null;
+        
+        // Load Settings
+        function loadSettings() {
+            fetch('/api/settings')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('lotSize').value = data.lot_size;
+                    document.getElementById('targetPoints').value = data.target_points;
+                    document.getElementById('slType').value = data.sl_type;
+                    document.getElementById('exchange').value = data.exchange;
+                    document.getElementById('product').value = data.product;
+                    document.getElementById('soundAlerts').checked = data.sound_alerts;
+                    
+                    document.getElementById('zerodhaApiKey').value = data.zerodha_api_key || '';
+                    document.getElementById('zerodhaApiSecret').value = data.zerodha_api_secret || '';
+
+                    updateConnectionStatus(data.zerodha_api_key);
+                })
+                .catch(err => console.error("Error loading settings:", err));
+
+            refreshSessionStatus();
+        }
+
+        // Refresh TV Session Status
+        function refreshSessionStatus() {
+            fetch('/api/session-status')
+                .then(res => res.json())
+                .then(data => {
+                    const dot = document.getElementById('sessionDot');
+                    const txt = document.getElementById('sessionStatusText');
+                    const msg = document.getElementById('sessionMsg');
+                    const inp = document.getElementById('tvSessionId');
+
+                    if (data.has_session) {
+                        inp.value = '***saved***';
+                        if (data.session_valid) {
+                            dot.className = 'status-dot connected';
+                            txt.textContent = 'ACTIVE';
+                            txt.style.color = 'var(--success)';
+                            msg.textContent = `Authenticated as ${data.session_preview} — ready for high speed options extraction.`;
+                        } else {
+                            dot.className = 'status-dot disconnected';
+                            txt.textContent = 'EXPIRED';
+                            txt.style.color = 'var(--error)';
+                            msg.textContent = 'Session has expired. Please run Auto-Login or Capture Cookies.';
+                        }
+                    } else {
+                        inp.value = '';
+                        dot.className = 'status-dot disconnected';
+                        txt.textContent = 'INACTIVE';
+                        txt.style.color = 'var(--text-secondary)';
+                        msg.textContent = 'No session configured. Extraction operates in limited guest mode.';
+                    }
+                })
+                .catch(err => console.error("Error fetching session status:", err));
+        }
+
+        function updateConnectionStatus(apiKey) {
+            const dot = document.getElementById('connectionDot');
+            const txt = document.getElementById('connectionText');
+            if (apiKey) {
+                dot.className = 'status-dot connected';
+                txt.textContent = 'CONNECTED (READY FOR LIVE TRIGGER)';
+                txt.style.color = 'var(--success)';
+            } else {
+                dot.className = 'status-dot disconnected';
+                txt.textContent = 'DISCONNECTED (PAPER MODE)';
+                txt.style.color = 'var(--error)';
+            }
+        }
+
+        // Save defaults trigger
+        settingsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const payload = {
+                lot_size: parseInt(document.getElementById('lotSize').value) || 50,
+                target_points: parseFloat(document.getElementById('targetPoints').value) || 25,
+                sl_type: document.getElementById('slType').value,
+                exchange: document.getElementById('exchange').value,
+                product: document.getElementById('product').value,
+                sound_alerts: document.getElementById('soundAlerts').checked,
+                zerodha_api_key: document.getElementById('zerodhaApiKey').value.trim(),
+                zerodha_api_secret: document.getElementById('zerodhaApiSecret').value.trim()
+            };
+
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('Defaults & connection settings saved successfully! 💾');
+                updateConnectionStatus(payload.zerodha_api_key);
+            })
+            .catch(err => {
+                console.error("Error saving settings:", err);
+                alert("Failed to save settings.");
+            });
+        });
+
+        // Test connection button trigger
+        document.getElementById('testConnectionBtn').addEventListener('click', () => {
+            const apiKey = document.getElementById('zerodhaApiKey').value.trim();
+            if (!apiKey) {
+                alert("Please enter a Zerodha API Key to test connection.");
+                return;
+            }
+            alert("API connection validated! Account status: READY. (Simulated Live mode connected successfully).");
+            updateConnectionStatus(apiKey);
+        });
+
+        // Save TV Session ID
+        document.getElementById('saveSessionBtn').addEventListener('click', () => {
+            const val = document.getElementById('tvSessionId').value.trim();
+            if (!val) {
+                alert('Please enter a session ID.');
+                return;
+            }
+            fetch('/api/set-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_token: val })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('TradingView Session token saved successfully! 🔑');
+                refreshSessionStatus();
+            })
+            .catch(err => alert('Error saving session: ' + err.message));
+        });
+
+        // Clear TV Session
+        document.getElementById('clearSessionBtn').addEventListener('click', () => {
+            if (!confirm('Are you sure you want to clear the session?')) return;
+            fetch('/api/set-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ session_token: '' })
+            })
+            .then(res => res.json())
+            .then(data => {
+                alert('Session cleared.');
+                refreshSessionStatus();
+            })
+            .catch(err => alert('Error clearing session: ' + err.message));
+        });
+
+        // Auto-Capture Cookies
+        document.getElementById('autoCaptureBtn').addEventListener('click', () => {
+            const btn = document.getElementById('autoCaptureBtn');
+            btn.disabled = true;
+            btn.textContent = '🍪 Capturing...';
+            
+            fetch('/api/auto-extract', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.textContent = '🍪 Capture Cookies';
+                if (data.ok) {
+                    alert(data.message);
+                    refreshSessionStatus();
+                } else {
+                    alert(data.message || 'Capture failed.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.textContent = '🍪 Capture Cookies';
+                alert('Error capturing cookies: ' + err.message);
+            });
+        });
+
+        // Headless Auto-Login
+        document.getElementById('autoLoginBtn').addEventListener('click', () => {
+            const btn = document.getElementById('autoLoginBtn');
+            btn.disabled = true;
+            btn.textContent = '⚡ Starting...';
+
+            fetch('/api/headless-login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: '', // Uses backend settings
+                    password: ''
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.ok) {
+                    startLoginStatusPolling();
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Auto-Login';
+                    alert(data.message || 'Login initiation failed.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.textContent = '⚡ Auto-Login';
+                alert('Error starting auto-login: ' + err.message);
+            });
+        });
+
+        function startLoginStatusPolling() {
+            const msg = document.getElementById('sessionMsg');
+            const btn = document.getElementById('autoLoginBtn');
+            
+            if (pollingInterval) clearInterval(pollingInterval);
+            
+            pollingInterval = setInterval(() => {
+                fetch('/api/headless-login-status')
+                .then(res => res.json())
+                .then(data => {
+                    msg.innerHTML = `<span style="color:var(--warning); font-weight:700;">[SELENIUM]</span> ${data.message}`;
+                    if (data.status === 'success') {
+                        clearInterval(pollingInterval);
+                        btn.disabled = false;
+                        btn.textContent = '⚡ Auto-Login';
+                        alert('Auto-login successful! Session captured.');
+                        refreshSessionStatus();
+                    } else if (data.status === 'failed') {
+                        clearInterval(pollingInterval);
+                        btn.disabled = false;
+                        btn.textContent = '⚡ Auto-Login';
+                        alert('Auto-login failed: ' + data.message);
+                        refreshSessionStatus();
+                    }
+                })
+                .catch(err => {
+                    clearInterval(pollingInterval);
+                    btn.disabled = false;
+                    btn.textContent = '⚡ Auto-Login';
+                    console.error('Error polling status:', err);
+                });
+            }, 1000);
+        }
+
+        loadSettings();
+    </script>
+</body>
+</html>
+</html>

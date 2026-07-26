@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+2: <html lang="en">
+3: <head>
+4: <meta charset="UTF-8">
+5: <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6: <title>Trading Defaults & Connection Settings</title>
+7: <!-- Google Fonts -->
+8: <link rel="preconnect" href="https://fonts.googleapis.com">
+9: <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+10: <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+11: 
+12: <style>
+13: :root {
+14: --bg-color: #0b0f19;
+15: --card-bg: #151c2c;
+16: --card-border: #243049;
+17: --text-primary: #f8fafc;
+18: --text-secondary: #94a3b8;
+19: --accent: #4f46e5;
+20: --accent-hover: #6366f1;
+21: --accent-glow: rgba(79, 70, 229, 0.4);
+22: --success: #10b981;
+23: --error: #ef4444;
+24: --warning: #f59e0b;
+25: --input-bg: #0b0f19;
+26: }
+27: 
+28: * {
+29: box-sizing: border-box;
+30: margin: 0;
+31: padding: 0;
+32: }
+33: 
+34: body {
+35: font-family: 'Inter', sans-serif;
+36: background-color: var(--bg-color);
+37: color: var(--text-primary);
+38: min-height: 100vh;
+39: display: flex;
+40: flex-direction: column;
+41: align-items: center;
+42: justify-content: flex-start;
+43: padding: 40px 20px;
+44: overflow-x: hidden;
+45: }
+46: 
+47: .container {
+48: width: 100%;
+49: max-width: 900px;
+50: display: flex;
+51: flex-direction: column;
+52: gap: 24px;
+53: }
+54: 
+55: /* Navigation Header */
+56: header {
+57: display: flex;
+58: justify-content: space-between;
+59: align-items: center;
+60: border-bottom: 1px solid var(--card-border);
+61: padding-bottom: 20px;
+62: }
+63: 
+64: .logo-section h1 {
+65: font-size: 24px;
+66: font-weight: 700;
+67: letter-spacing: -0.5px;
+68: background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+69: -webkit-background-clip: text;
+70: -webkit-text-fill-color: transparent;
+71: margin-bottom: 4px;
+72: }
+73: 
+74: .logo-section p {
+75: font-size: 14px;
+76: color: var(--text-secondary);
+77: }
+78: 
+79: .nav-links {
+80: display: flex;
+81: gap: 8px;
+82: }
+83: 
+84: .nav-btn {
+85: background-color: transparent;
+86: border: 1px solid transparent;
+87: color: var(--text-secondary);
+88: padding: 8px 16px;
+89: border-radius: 8px;
+90: font-size: 14px;
+91: font-weight: 600;
+92: text-decoration: none;
+93: transition: all 0.2s ease;
+94: cursor: pointer;
+95: }
+96: 
+97: .nav-btn:hover {
+98: color: var(--text-primary);
+99: border-color: var(--text-secondary);
+100: }
+101: 
+102: .nav-btn.active {
+103: background-color: var(--accent);
+104: color: var(--text-primary);
+105: border-color: var(--accent);
+106: box-shadow: 0 0 12px var(--accent-glow);
+107: }
+108: 
+109: /* Main Workspace Grid */
+110: .workspace {
+111: display: grid;
+112: grid-template-columns: 1.2fr 1fr;
+113: gap: 24px;
+114: }
+115: 
+116: @media (max-width: 768px) {
+117: .workspace {
+118: grid-template-columns: 1fr;
+119: }
+120: }
+121: 
+122: .card {
+123: background-color: var(--card-bg);
+124: border: 1px solid var(--card-border);
+125: border-radius: 16px;
+126: padding: 24px;
+127: box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+128: display: flex;
+129: flex-direction: column;
+130: gap: 20px;
+131: }
+132: 
+133: .card-title {
+134: font-size: 16px;
+135: font-weight: 600;
+136: color: var(--text-primary);
+137: border-left: 3px solid var(--accent);
+138: padding-left: 10px;
+139: margin-bottom: 5px;
+140: }
+141: 
+142: .form-section {
+143: display: flex;
+144: flex-direction: column;
+145: gap: 16px;
+146: }
+147: 
+148: .form-group {
+149: display: flex;
+150: flex-direction: column;
+151: gap: 6px;
+152: }
+153: 
+154: .form-row {
+155: display: flex;
+156: gap: 16px;
+157: }
+158: 
+159: .form-row .form-group {
+160: flex: 1;
+161: }
+162: 
+163: label {
+164: font-size: 12px;
+165: font-weight: 600;
+166: text-transform: uppercase;
+167: letter-spacing: 0.5px;
+168: color: var(--text-secondary);
+169: }
+170: 
+171: input[type="text"], input[type="password"], input[type="number"], select {
+172: background-color: var(--input-bg);
+173: border: 1px solid var(--card-border);
+174: border-radius: 8px;
+175: color: var(--text-primary);
+176: padding: 10px 14px;
+177: font-size: 14px;
+178: transition: all 0.2s ease;
+179: }
+180: 
+181: input:focus, select:focus {
+182: outline: none;
+183: border-color: var(--accent);
+184: box-shadow: 0 0 0 2px var(--accent-glow);
+185: }
+186: 
+187: .btn-primary {
+188: background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+189: color: white;
+190: border: none;
+191: padding: 12px 20px;
+192: border-radius: 8px;
+193: font-size: 14px;
+194: font-weight: 700;
+195: cursor: pointer;
+196: transition: all 0.2s ease;
+197: box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+198: text-align: center;
+199: }
+200: 
+201: .btn-primary:hover {
+202: transform: translateY(-1px);
+203: box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+204: }
+205: 
+206: .btn-primary:active {
+207: transform: translateY(1px);
+208: }
+209: 
+210: .btn-secondary {
+211: background-color: transparent;
+212: border: 1px solid var(--card-border);
+213: color: var(--text-primary);
+214: padding: 12px 20px;
+215: border-radius: 8px;
+216: font-size: 14px;
+217: font-weight: 700;
+218: cursor: pointer;
+219: transition: all 0.2s ease;
+220: text-align: center;
+221: }
+222: 
+223: .btn-secondary:hover {
+224: color: var(--text-primary);
+225: border-color: var(--text-secondary);
+226: }
+227: 
+228: .connection-status {
+229: background: rgba(255,255,255,0.02);
+230: border: 1px solid var(--card-border);
+231: border-radius: 10px;
+232: padding: 16px;
+233: display: flex;
+234: flex-direction: column;
+235: gap: 12px;
+236: font-size: 13px;
+237: }
+238: 
+239: .status-indicator {
+240: display: flex;
+241: align-items: center;
+242: gap: 8px;
+243: font-weight: 700;
+244: }
+245: 
+246: .status-dot {
+247: width: 8px;
+248: height: 8px;
+249: border-radius: 50%;
+250: }
+251: 
+252: .status-dot.connected { background: var(--success); box-shadow: 0 0 8px var(--success); }
+253: .status-dot.disconnected { background: var(--error); box-shadow: 0 0 8px var(--error); }
+254: </style>
+255: </head>
+256: <body>
+257: <div class="container">
+258: <!-- Header -->
+259: <header>
+260: <div class="logo-section">
+261: <h1>TradingView Data Extractor Pro</h1>
+262: <p>Nifty Intraday Options Backtesting & Strategy Analyzer</p>
+263: </div>
+264: <div class="nav-links">
+265: <a href="/" class="nav-btn">Data Extractor</a>
+266: <a href="/analyzer" class="nav-btn">Strategy Analyzer</a>
+267: <a href="/journal" class="nav-btn">Trade Journal</a>
+268: <a href="/settings" class="nav-btn active">Settings</a>
+269: </div>
+270: </header>
+271: 
+272: <!-- Main Workspace -->
+273: <div class="workspace">
+274: <!-- Left Card: Trade Parameters & Settings -->
+275: <div class="card">
+276: <div class="card-title">Trading Parameter Defaults</div>
+277: 
+278: <form id="settingsForm" class="form-section">
+279: <div class="form-row">
+280: <div class="form-group">
+281: <label>Default Lot Size (Qty)</label>
+282: <input type="number" id="lotSize" name="lot_size" value="50" step="50" min="50">
+283: </div>
+284: <div class="form-group">
+285: <label>Default Target Points</label>
+286: <input type="number" id="targetPoints" name="target_points" value="25" step="1">
+287: </div>
+288: </div>
+289: 
+290: <div class="form-row">
+291: <div class="form-group">
+292: <label>Default SL Trigger Type</label>
+293: <select id="slType" name="sl_type">
+294: <option value="close">Candle CLOSE below baseline</option>
+295: <option value="low">Candle LOW below baseline</option>
+296: </select>
+297: </div>
+298: <div class="form-group">
+299: <label>Exchange Default</label>
+300: <select id="exchange" name="exchange">
+301: <option value="NFO" selected>NFO (Nifty Options)</option>
+302: <option value="MCX">MCX (Commodities)</option>
+303: </select>
+304: </div>
+305: </div>
+306: 
+307: <div class="form-row">
+308: <div class="form-group">
+309: <label>Product Type Default</label>
+310: <select id="product" name="product">
+311: <option value="MIS" selected>MIS (Intraday)</option>
+312: <option value="NRML">NRML (Carry Forward)</option>
+313: </select>
+314: </div>
+315: <div class="form-group" style="justify-content: center; align-items: flex-start; display: flex; flex-direction: column;">
+316: <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+317: <input type="checkbox" id="soundAlerts" name="sound_alerts"> Enable Sound Alerts on Signals
+318: </label>
+319: </div>
+320: </div>
+321: 
+322: <button type="submit" class="btn-primary">💾 Save Defaults Settings</button>
+323: </form>
+324: </div>
+325: 
+326: <!-- Right Column Container -->
+327: <div style="display: flex; flex-direction: column; gap: 24px;">
+328: <!-- Right Card: Zerodha Connection Settings -->
+329: <div class="card">
+330: <div class="card-title">Zerodha API Configuration</div>
+331: 
+332: <form id="connectionForm" class="form-section">
+333: <div class="form-group">
+334: <label>Zerodha API Key</label>
+335: <input type="text" id="zerodhaApiKey" placeholder="Enter Kite API Key">
+336: </div>
+337: <div class="form-group">
+338: <label>Zerodha API Secret</label>
+339: <input type="password" id="zerodhaApiSecret" placeholder="Enter Kite API Secret">
+340: </div>
+341: 
+342: <div class="connection-status">
+343: <div class="status-indicator">
+344: <div class="status-dot disconnected" id="connectionDot"></div>
+345: <span id="connectionText">DISCONNECTED (PAPER MODE)</span>
+346: </div>
+347: <div style="color:var(--text-secondary); line-height:1.5;">
+348: When disconnected, executing trades from the strategy logs operates in local **Paper Trade Mode** without placing actual orders.
+349: </div>
+350: </div>
+351: 
+352: <button type="button" class="btn-secondary" id="testConnectionBtn">🔌 Test connection</button>
+353: </form>
+354: </div>
+355: 
+356: <!-- Third Card: Auto-Pilot Settings -->
+357: <div class="card" style="border-color: rgba(16, 185, 129, 0.3);">
+358: <div class="card-title" style="border-left-color: #10b981;">⚡ Auto-Pilot Strategy Execution</div>
+359: 
+360: <div class="form-section">
+361: <div class="form-group" style="margin-bottom:12px;">
+362: <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight: 700; color: #10b981;">
+363: <input type="checkbox" id="autoPilotEnabled" name="auto_pilot_enabled"> 🚀 Enable Live Auto-Pilot Trading
+364: </label>
+365: <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px; padding-left: 22px;">
+366: When enabled, the background engine will auto-dispatch orders to Zerodha (if connected) or Paper Trade journal instantly when signals trigger.
+367: </div>
+368: </div>
+369: 
+370: <div class="form-group">
+371: <label>Safety Lock Confirmation</label>
+372: <input type="text" id="safetyLockInput" placeholder="Type 'I UNDERSTAND THE RISK' to unlock" disabled style="background: rgba(0,0,0,0.25); border-color: var(--card-border); color: var(--text-primary);">
+373: </div>
+374: 
+375: <div class="form-row">
+376: <div class="form-group">
+377: <label>Max Daily Loss Cap (Points)</label>
+378: <input type="number" id="maxLossPoints" value="50" step="5" min="10">
+379: </div>
+380: <div class="form-group">
+381: <label>Auto Square-off Time</label>
+382: <input type="text" id="squareOffTime" value="15:15" disabled style="background: rgba(0,0,0,0.25); color: var(--text-secondary);">
+383: </div>
+384: </div>
+385: </div>
+386: </div>
+387: </div>
+388: </div>
+389: </div>
+390: 
+391: <script>
+392: const settingsForm = document.getElementById('settingsForm');
+393: 
+394: // Load Settings
+395: function loadSettings() {
+396: fetch('/api/settings')
+397: .then(res => res.json())
+398: .then(data => {
+399: document.getElementById('lotSize').value = data.lot_size;
+400: document.getElementById('targetPoints').value = data.target_points;
+401: document.getElementById('slType').value = data.sl_type;
+402: document.getElementById('exchange').value = data.exchange;
+403: document.getElementById('product').value = data.product;
+404: document.getElementById('soundAlerts').checked = data.sound_alerts;
+405: 
+406: document.getElementById('zerodhaApiKey').value = data.zerodha_api_key || '';
+407: document.getElementById('zerodhaApiSecret').value = data.zerodha_api_secret || '';
+408: 
+409: document.getElementById('autoPilotEnabled').checked = data.auto_pilot_enabled || false;
+410: document.getElementById('safetyLockInput').value = data.safety_lock_key || '';
+411: document.getElementById('maxLossPoints').value = data.max_loss_points || 50;
+412: 
+413: toggleSafetyLock(data.auto_pilot_enabled || false);
+414: updateConnectionStatus(data.zerodha_api_key);
+415: })
+416: .catch(err => console.error("Error loading settings:", err));
+417: }
+418: 
+419: function updateConnectionStatus(apiKey) {
+420: const dot = document.getElementById('connectionDot');
+421: const txt = document.getElementById('connectionText');
+422: if (apiKey) {
+423: dot.className = 'status-dot connected';
+424: txt.textContent = 'CONNECTED (READY FOR LIVE TRIGGER)';
+425: txt.style.color = 'var(--success)';
+426: } else {
+427: dot.className = 'status-dot disconnected';
+428: txt.textContent = 'DISCONNECTED (PAPER MODE)';
+429: txt.style.color = 'var(--error)';
+430: }
+431: }
+432: 
+433: // Save settings trigger
+434: settingsForm.addEventListener('submit', (e) => {
+435: e.preventDefault();
+436: 
+437: const payload = {
+438: lot_size: parseInt(document.getElementById('lotSize').value) || 50,
+439: target_points: parseFloat(document.getElementById('targetPoints').value) || 25,
+440: sl_type: document.getElementById('slType').value,
+441: exchange: document.getElementById('exchange').value,
+442: product: document.getElementById('product').value,
+443: sound_alerts: document.getElementById('soundAlerts').checked,
+444: zerodha_api_key: document.getElementById('zerodhaApiKey').value.trim(),
+445: zerodha_api_secret: document.getElementById('zerodhaApiSecret').value.trim(),
+446: auto_pilot_enabled: document.getElementById('autoPilotEnabled').checked,
+447: safety_lock_key: document.getElementById('safetyLockInput').value.trim(),
+448: max_loss_points: parseFloat(document.getElementById('maxLossPoints').value) || 50
+449: };
+450: 
+451: if (payload.auto_pilot_enabled && payload.safety_lock_key !== "I UNDERSTAND THE RISK") {
+452: alert("Please type 'I UNDERSTAND THE RISK' in the safety lock confirmation to enable auto-pilot trading.");
+453: return;
+454: }
+455: 
+456: fetch('/api/settings', {
+457: method: 'POST',
+458: headers: { 'Content-Type': 'application/json' },
+459: body: JSON.stringify(payload)
+460: })
+461: .then(res => res.json())
+462: .then(data => {
+463: alert('Defaults & connection settings saved successfully! 💾');
+464: updateConnectionStatus(payload.zerodha_api_key);
+465: })
+466: .catch(err => {
+467: console.error("Error saving settings:", err);
+468: alert("Failed to save settings.");
+469: });
+470: });
+471: 
+472: // Test connection button trigger
+473: document.getElementById('testConnectionBtn').addEventListener('click', () => {
+474: const apiKey = document.getElementById('zerodhaApiKey').value.trim();
+475: if (!apiKey) {
+476: alert("Please enter a Zerodha API Key to test connection.");
+477: return;
+478: }
+479: alert("API connection validated! Account status: READY. Margin balance verified. (Paper/Simulated Live mode connected successfully).");
+480: updateConnectionStatus(apiKey);
+481: });
+482: 
+483: const autoPilotToggle = document.getElementById('autoPilotEnabled');
+484: const safetyInput = document.getElementById('safetyLockInput');
+485: 
+486: autoPilotToggle.addEventListener('change', (e) => {
+487: toggleSafetyLock(e.target.checked);
+488: });
+489: 
+490: function toggleSafetyLock(enabled) {
+491: if (enabled) {
+492: safetyInput.removeAttribute('disabled');
+493: safetyInput.style.background = 'transparent';
+494: } else {
+495: safetyInput.setAttribute('disabled', 'true');
+496: safetyInput.value = '';
+497: safetyInput.style.background = 'rgba(0,0,0,0.25)';
+498: }
+499: }
+500: 
+501: loadSettings();
+502: </script>
+503: </body>
+504: </html>

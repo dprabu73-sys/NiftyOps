@@ -1,0 +1,602 @@
+<div style="flex:1; height:1px; background: rgba(255,255,255,0.06);"></div>
+</div>
+
+<!-- Link active extraction task -->
+<div class="form-group">
+<label style="display: flex; justify-content: space-between; align-items: center;">
+<span>⚡ Link Active Extractor Task</span>
+<span id="refreshTasksBtn" style="color: var(--accent-hover); cursor: pointer; text-transform: none; font-size: 11px; font-weight: 600;">🔄 Refresh Jobs</span>
+</label>
+<select id="activeTasksSelect" name="task_id">
+<option value="">-- Select an extraction job (or upload file below) --</option>
+</select>
+</div>
+
+<!-- File Upload -->
+<div class="form-group">
+<label>Excel File Upload ("Strategy_Summary" & "5m_Live_Candles")</label>
+<div class="file-upload-wrap">
+<input type="file" id="excelFile" name="file" accept=".xlsx">
+<div class="file-upload-text" id="uploadStatusText">
+Drop Excel sheet here or <span>browse files</span>
+</div>
+</div>
+</div>
+
+<!-- Manual Baseline Inputs -->
+<div class="form-row">
+<div class="form-group">
+<label>Option Type</label>
+<select id="optionType" name="option_type">
+<option value="call" selected>CALL Option</option>
+<option value="put">PUT Option</option>
+<option value="both">&#9889; Both (First Signal Wins)</option>
+</select>
+</div>
+<div class="form-group">
+<label>Target Points</label>
+<input type="number" id="targetPoints" name="target_points" value="25" min="1">
+</div>
+</div>
+
+<!-- Toggle Close-based vs Low-based SL -->
+<div class="toggle-container">
+<div>
+<div style="font-weight: 600; font-size: 13px;">Low-Based Stop Loss</div>
+<div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+Trigger SL on candle Low instead of candle Close
+</div>
+</div>
+<label class="switch">
+<input type="checkbox" id="slTypeToggle">
+<span class="slider"></span>
+</label>
+<input type="hidden" name="sl_type" id="slTypeVal" value="close">
+</div>
+
+<div style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin: 5px 0;"></div>
+
+<!-- Manual Baseline Entry values for guest/manual backtesting -->
+<div class="card-title" style="font-size: 15px;">Manual Entry & Baseline Data (Fallback)</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Prev 15:15 Close (15m HA)</label>
+<input type="number" id="prevDayCloseHA" name="prev_day_1515_close_ha" value="0" step="0.05">
+</div>
+<div class="form-group">
+<label>Today 09:15 Close (15m HA)</label>
+<input type="number" id="today0915CloseHA" name="today_0915_close_ha" value="0" step="0.05">
+</div>
+</div>
+
+<div class="form-group">
+<label>5m Candles JSON Data (Optional Manual entry)</label>
+<textarea id="candlesJson" name="candles" rows="3" placeholder='[{"time":"09:15","open":100,"high":120,"low":90,"close":110}]'></textarea>
+</div>
+
+<button type="submit" class="btn-primary">⚡ Run Backtest Analysis</button>
+</form>
+</div>
+
+<!-- Right Card: Manual Level Overrides -->
+<div class="card">
+<div class="card-title">Manual Logic Overrides</div>
+
+<div class="form-section">
+<div class="form-group">
+<label>Override Baseline Price</label>
+<input type="number" id="overrideBaseline" placeholder="Bypass max(15:15 HA, 09:15 HA)" step="0.05">
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Override Entry Price</label>
+<input type="number" id="overrideEntryPrice" placeholder="Custom Entry Level" step="0.05">
+</div>
+<div class="form-group">
+<label>Override Entry Time</label>
+<input type="text" id="overrideEntryTime" placeholder="e.g. 09:35">
+</div>
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Override Target Price</label>
+<input type="number" id="overrideTarget" placeholder="Custom Target Price" step="0.05">
+</div>
+<div class="form-group">
+<label>Override Stop-Loss Price</label>
+<input type="number" id="overrideSL" placeholder="Custom Stop Price" step="0.05">
+</div>
+</div>
+
+<div class="form-group">
+<label>Override Exit Time</label>
+<input type="text" id="overrideExitTime" placeholder="Force Exit at specific time (e.g. 15:20)">
+</div>
+
+<button type="button" id="recalculateBtn" class="btn-secondary">🔄 Recalculate & Apply Overrides</button>
+</div>
+</div>
+</div>
+
+<!-- Dual Race Banner (Both mode only) -->
+<div id="dualBanner" style="display:none;">
+<div class="dual-race-banner">
+<div class="race-side" id="callSideCard">
+<div class="race-option-label">&#128222; CALL</div>
+<div class="race-sym" id="callSym">—</div>
+<div class="race-bl">Baseline: <span id="callBaseline">—</span></div>
+<div class="race-status-pill" id="callStatusPill">WAITING</div>
+<div class="race-entry" id="callEntryDetail">—</div>
+</div>
+<div class="race-center">
+<div class="winner-badge" id="winnerBadge">&#8987;</div>
+<div class="winner-label" id="winnerLabel">Analyzing...</div>
+</div>
+<div class="race-side" id="putSideCard">
+<div class="race-option-label">&#128200; PUT</div>
+<div class="race-sym" id="putSym">—</div>
+<div class="race-bl">Baseline: <span id="putBaseline">—</span></div>
+<div class="race-status-pill" id="putStatusPill">WAITING</div>
+<div class="race-entry" id="putEntryDetail">—</div>
+</div>
+</div>
+</div>
+
+<!-- Metrics Dashboard Display -->
+<div class="metrics-board" id="metricsBoard" style="display: none;">
+<div class="metric-card">
+<div class="metric-label">Entry Price / Time</div>
+<div class="metric-value" id="metricEntry">—</div>
+</div>
+<div class="metric-card">
+<div class="metric-label">Target / SL Levels</div>
+<div class="metric-value" style="font-size: 15px; line-height: 1.4;" id="metricTargets">—</div>
+</div>
+<div class="metric-card">
+<div class="metric-label">Final Exit Reason & Time</div>
+<div class="metric-value" id="metricExit">—</div>
+</div>
+<div class="metric-card" id="pnlCard">
+<div class="metric-label">Trade P&L (Points)</div>
+<div class="metric-value metric-val-pnl" id="metricPnl">—</div>
+</div>
+</div>
+
+<!-- Critic Review Panel (Both mode only) -->
+<div id="criticPanel" style="display:none;" class="card">
+<div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+<span>&#128270; Trade Quality Critique</span>
+<span class="grade-badge" id="criticGradeBadge">—</span>
+</div>
+<div class="critic-score-row">
+<span class="critic-score-label">Quality Score</span>
+<div class="critic-bar-wrap">
+<div class="critic-bar-fill" id="criticBarFill" style="width:0%"></div>
+</div>
+<span class="critic-score-val" id="criticScoreVal">0/100</span>
+</div>
+<div class="critic-metrics-grid" id="criticMetricsGrid"></div>
+<div class="critic-commentary" id="criticCommentary"></div>
+</div>
+
+<!-- Interactive Price Chart Card -->
+<div class="card" id="chartCard" style="display: none;">
+<div class="card-title">
+<span>📈 Option Price Trend & Strategy Markers</span>
+</div>
+<div style="height: 380px; width: 100%; position: relative;">
+<canvas id="priceChart"></canvas>
+</div>
+</div>
+
+<!-- Actionable Signal Stream Card -->
+<div class="card" id="signalCard" style="display: none;">
+<div class="card-title">
+<span>⚡ Actionable Strategy Signal Stream (Zerodha API Ready)</span>
+</div>
+<div class="preview-table-wrap">
+<table class="preview-table">
+<thead>
+<tr>
+<th>Time</th>
+<th>Action</th>
+<th>Event Type</th>
+<th>Trigger Price</th>
+<th>Quantity</th>
+<th>Order Details</th>
+<th>API Execution</th>
+</tr>
+</thead>
+<tbody id="signalEventBody">
+<!-- Filled by JS -->
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- Candle Log Card -->
+<div class="card" id="resultsCard" style="display: none;">
+<div class="card-title">
+<span id="resultsCardTitle">📊 Intraday 5m Candle Log</span>
+<button id="exportCsvBtn" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">📥 Export Log to CSV</button>
+</div>
+
+<div class="preview-table-wrap">
+<table class="preview-table">
+<thead>
+<tr>
+<th>Time</th>
+<th>Open</th>
+<th>High</th>
+<th>Low</th>
+<th>Close</th>
+<th>Baseline</th>
+<th>Tag/Event</th>
+</tr>
+</thead>
+<tbody id="candleBody">
+<!-- Filled by JS -->
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<!-- Order Ticket Modal Overlay -->
+<div class="modal-overlay" id="orderTicketModal">
+<div class="modal-card">
+<div class="modal-header">
+<span class="modal-header-title" id="ticketTitle">Order Ticket Review</span>
+<button class="modal-close-btn" id="closeTicketBtn">&times;</button>
+</div>
+
+<div class="ticket-detail-grid">
+<div class="ticket-detail-item">
+<span class="ticket-detail-label">Trading Symbol</span>
+<span class="ticket-detail-val" id="ticketSym">NIFTY2590724800CE</span>
+</div>
+<div class="ticket-detail-item">
+<span class="ticket-detail-label">Action / Side</span>
+<span class="ticket-detail-val" id="ticketSide">BUY</span>
+</div>
+<div class="ticket-detail-item">
+<span class="ticket-detail-label">Signal Price</span>
+<span class="ticket-detail-val" id="ticketPrice">₹225.10</span>
+</div>
+<div class="ticket-detail-item">
+<span class="ticket-detail-label">Exchange</span>
+<span class="ticket-detail-val" id="ticketExchange">NFO</span>
+</div>
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Lot Size / Qty</label>
+<input type="number" id="ticketQty" value="50" step="50" min="50">
+</div>
+<div class="form-group">
+<label>Product Type</label>
+<select id="ticketProduct">
+<option value="MIS" selected>MIS (Intraday)</option>
+<option value="NRML">NRML (Carry Forward)</option>
+</select>
+</div>
+</div>
+
+<div class="form-row">
+<div class="form-group">
+<label>Order Type</label>
+<select id="ticketOrderType">
+<option value="MARKET" selected>MARKET</option>
+<option value="LIMIT">LIMIT</option>
+<option value="SL-M">SL-M</option>
+</select>
+</div>
+<div class="form-group" id="ticketLimitPriceGroup" style="display:none;">
+<label>Limit/Trigger Price</label>
+<input type="number" id="ticketLimitPrice" step="0.05">
+</div>
+setTimeout(() => { b.style.transition = 'width 0.6s ease'; }, i * 80);
+});
+}, 50);
+
+// Directional dominance extra metric
+const domGap = critic.dominance_gap;
+const oppFirst = critic.opp_first_breach_idx;
+let domText = '';
+if (oppFirst == null) {
+domText = `<span style="color:#10b981;font-weight:700;">Opposing side: Zero breach all session</span> — strongest possible directional signal.`;
+} else if (critic.opp_entry_idx == null) {
+domText = `<span style="color:#818cf8;font-weight:700;">Opposing side: First breach at candle #${oppFirst+1}</span>, never confirmed entry — ${winnerSide.toUpperCase()} dominated direction.`;
+} else {
+domText = `<span style="color:#f59e0b;font-weight:700;">Opposing side: Entered at candle #${critic.opp_entry_idx+1}</span> — gap of ${domGap >= 0 ? '+' : ''}${domGap} candles vs winner.`;
+}
+document.getElementById('criticMetricsGrid').innerHTML += `
+<div class="critic-metric-item" style="grid-column:1/-1;">
+<div class="critic-metric-header">
+<span class="critic-metric-name">Directional Dominance</span>
+<span class="critic-metric-rating ${oppFirst == null ? 'rating-excellent' : critic.opp_entry_idx == null ? 'rating-good' : domGap >= 5 ? 'rating-good' : 'rating-fair'}">${oppFirst == null ? 'PURE' : critic.opp_entry_idx == null ? 'STRONG' : domGap >= 3 ? 'GOOD' : 'CLOSE'}</span>
+</div>
+<div style="font-size:13px;margin-top:4px;">${domText}</div>
+</div>`;
+
+// Commentary
+const commentary = critic.commentary || '';
+document.getElementById('criticCommentary').innerHTML = commentary
+.replace(/(CALL|PUT)/g, '<strong>$1</strong>')
+.replace(/(excellent|outstanding|exceptional|textbook|highly efficient)/gi, '<strong style="color:#10b981">$1</strong>')
+.replace(/(poor|elevated risk|weaker|tightly contested|low confidence|treat with)/gi, '<strong style="color:#ef4444">$1</strong>');
+}
+
+function renderCandleTable(candles, baseline) {
+const tbody = document.getElementById('candleBody');
+let html = '';
+candles.forEach(c => {
+let rowClass = '', badge = '';
+if      (c.tag === 'breach')    { rowClass = 'row-breach'; badge = `<span class="badge" style="background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);">1st Breach</span>`; }
+else if (c.tag === 'entry')     { rowClass = 'row-entry';  badge = `<span class="badge badge-entry">Entry</span>`; }
+else if (c.tag === 'target')    { rowClass = 'row-target'; badge = `<span class="badge badge-target">Target Hit</span>`; }
+else if (c.tag === 'stop_loss') { rowClass = 'row-stop';   badge = `<span class="badge badge-stop">SL Triggered</span>`; }
+else if (c.tag === 'exit')      { rowClass = 'row-stop';   badge = `<span class="badge badge-stop">Manual Exit</span>`; }
+html += `<tr class="${rowClass}"><td>${c.time}</td><td>${c.open.toFixed(2)}</td><td style="font-weight:600;">${c.high.toFixed(2)}</td><td>${c.low.toFixed(2)}</td><td>${c.close.toFixed(2)}</td><td style="color:var(--text-secondary);">${(baseline||0).toFixed(2)}</td><td>${badge}</td></tr>`;
+});
+tbody.innerHTML = html;
+}
+
+// Export Log to CSV button trigger
+document.getElementById('exportCsvBtn').addEventListener('click', function() {
+if (!lastAnalysisResponse || !lastAnalysisResponse.candles) {
+alert("No analysis data available to export.");
+return;
+}
+
+const header = ["Time", "Open", "High", "Low", "Close", "Baseline", "Event"];
+const rows = lastAnalysisResponse.candles.map(c => [
+c.time,
+c.open,
+c.high,
+c.low,
+c.close,
+lastAnalysisResponse.final_baseline,
+c.tag || ""
+]);
+
+let csvContent = "data:text/csv;charset=utf-8," 
++ [header.join(",")].concat(rows.map(e => e.join(","))).join("\n");
+
+const encodedUri = encodeURI(csvContent);
+const link = document.createElement("a");
+link.setAttribute("href", encodedUri);
+link.setAttribute("download", `strategy_backtest_log_${lastAnalysisResponse.entry_time || 'session'}.csv`);
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+});
+
+// Fetch active tasks from API
+function loadActiveTasks() {
+const select = document.getElementById('activeTasksSelect');
+fetch('/api/tasks')
+.then(res => res.json())
+.then(data => {
+activeTasksList = data.tasks || [];
+// Save currently selected value
+const selectedVal = select.value;
+
+let html = '<option value="">-- Select an extraction job (or upload file below) --</option>';
+if (data.tasks && data.tasks.length > 0) {
+data.tasks.forEach(t => {
+const dateLabel = t.date ? `[${t.date}]` : '';
+const symLabel = t.call_sym && t.put_sym ? `(CALL: ${t.call_sym.split('C')[1]}, PUT: ${t.put_sym.split('P')[1]})` : '';
+const statusLabel = t.status ? ` - ${t.status.toUpperCase()}` : '';
+html += `<option value="${t.task_id}">${dateLabel} Nifty Strike ${t.close_0928} ${symLabel}${statusLabel}</option>`;
+});
+}
+select.innerHTML = html;
+
+// Restore selection if it still exists
+if (selectedVal) {
+select.value = selectedVal;
+}
+})
+.catch(err => console.error("Error loading active tasks:", err));
+}
+
+// Load tasks on load
+loadActiveTasks();
+
+// Refresh button trigger
+let currentEvent = null;
+let userSettings = { lot_size: 50, zerodha_api_key: '' };
+
+// Fetch settings
+fetch('/api/settings')
+.then(res => res.json())
+.then(data => {
+userSettings = data;
+if (data.zerodha_api_key) {
+const liveBtn = document.getElementById('zerodhaLiveBtn');
+if (liveBtn) {
+liveBtn.removeAttribute('disabled');
+liveBtn.title = 'Ready for Zerodha execution';
+}
+}
+})
+.catch(err => console.error("Error loading settings:", err));
+
+let priceChartInstance = null;
+
+function renderPriceChart(candles, baseline, entryPrice, targetPrice, slPrice) {
+
+if (data.zerodha_api_key) {
+const liveBtn = document.getElementById('zerodhaLiveBtn');
+if (liveBtn) {
+liveBtn.removeAttribute('disabled');
+liveBtn.title = 'Ready for Zerodha execution';
+}
+}
+})
+.catch(err => console.error("Error loading settings:", err));
+
+let priceChartInstance = null;
+
+function renderPriceChart(candles, baseline, entryPrice, targetPrice, slPrice) {
+const chartCard = document.getElementById('chartCard');
+const canvasEl = document.getElementById('priceChart');
+if (!canvasEl) return;
+const ctx = canvasEl.getContext('2d');
+
+if (slData) {
+datasets.push({
+label: 'Stop Loss Level',
+data: slData,
+borderColor: 'rgba(239, 68, 68, 0.6)',
+borderWidth: 1.5,
+borderDash: [4, 4],
+pointRadius: 0,
+fill: false,
+yAxisID: 'y'
+});
+}
+
+priceChartInstance = new Chart(ctx, {
+type: 'line',
+data: {
+labels: labels,
+datasets: datasets
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+interaction: {
+mode: 'index',
+intersect: false
+},
+plugins: {
+legend: {
+display: true,
+position: 'top',
+labels: {
+color: '#94a3b8',
+font: { family: 'Inter', size: 11, weight: '500' }
+}
+},
+tooltip: {
+backgroundColor: '#151c2c',
+titleColor: '#f8fafc',
+bodyColor: '#94a3b8',
+borderColor: '#243049',
+borderWidth: 1,
+padding: 10,
+titleFont: { family: 'Inter', size: 12, weight: '700' },
+bodyFont: { family: 'Inter', size: 11 },
+callbacks: {
+label: function(context) {
+let label = context.dataset.label || '';
+if (label) label += ': ';
+if (context.parsed.y !== null) {
+label += '₹' + context.parsed.y.toFixed(2);
+}
+pointHoverRadii.push(4);
+pointBgColors.push('#4f46e5');
+pointBorderColors.push('#4f46e5');
+pointBorderWidths.push(1);
+}
+});
+
+const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+gradient.addColorStop(0, 'rgba(79, 70, 229, 0.35)');
+gradient.addColorStop(1, 'rgba(79, 70, 229, 0.00)');
+
+const datasets = [
+{
+label: 'Option Close Price',
+data: closePrices,
+borderColor: '#6366f1',
+borderWidth: 2.5,
+backgroundColor: gradient,
+fill: true,
+tension: 0.3,
+pointRadius: pointRadii,
+pointHoverRadius: pointHoverRadii,
+pointBackgroundColor: pointBgColors,
+pointBorderColor: pointBorderColors,
+pointBorderWidth: pointBorderWidths,
+yAxisID: 'y'
+},
+{
+label: 'Baseline Reference',
+data: baselineData,
+borderColor: 'rgba(148, 163, 184, 0.5)',
+borderWidth: 1.5,
+borderDash: [5, 5],
+pointRadius: 0,
+fill: false,
+yAxisID: 'y'
+}
+];
+
+if (targetData) {
+datasets.push({
+label: 'Target Level',
+data: targetData,
+borderColor: 'rgba(16, 185, 129, 0.6)',
+borderWidth: 1.5,
+borderDash: [4, 4],
+pointRadius: 0,
+fill: false,
+yAxisID: 'y'
+});
+}
+
+if (slData) {
+datasets.push({
+label: 'Stop Loss Level',
+data: slData,
+borderColor: 'rgba(239, 68, 68, 0.6)',
+borderWidth: 1.5,
+borderDash: [4, 4],
+pointRadius: 0,
+fill: false,
+yAxisID: 'y'
+});
+}
+
+priceChartInstance = new Chart(ctx, {
+type: 'line',
+data: {
+labels: labels,
+datasets: datasets
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+interaction: {
+mode: 'index',
+intersect: false
+},
+plugins: {
+legend: {
+display: true,
+position: 'top',
+labels: {
+color: '#94a3b8',
+font: { family: 'Inter', size: 11, weight: '500' }
+}
+},
+tooltip: {
+backgroundColor: '#151c2c',
+titleColor: '#f8fafc',
+bodyColor: '#94a3b8',
+borderColor: '#243049',
+borderWidth: 1,
+padding: 10,
+titleFont: { family: 'Inter', size: 12, weight: '700' },
+bodyFont: { family: 'Inter', size: 11 },
+callbacks: {
+label: function(context) {
+let label = context.dataset.label || '';
+if (label) label += ': ';

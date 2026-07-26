@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.exe
+*.apk
+build/
+dist/
+temp_chrome_profile/
+temp_exports/
+.env

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Options Strategy Journal</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --card-border: #243049;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #4f46e5;
+            --accent-hover: #6366f1;
+            --accent-glow: rgba(79, 70, 229, 0.4);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --input-bg: #0b0f19;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1150px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Navigation Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 20px;
+        }
+
+        .logo-section h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background-color: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* Metrics Grid */
+        .metrics-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .metrics-board {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Table Card */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-left: 3px solid var(--accent);
+            padding-left: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error);
+        }
+
+        .preview-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--card-border);
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .preview-table th, .preview-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .preview-table th {
+            background-color: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        .status-win { color: var(--success); font-weight: 600; }
+        .status-loss { color: var(--error); font-weight: 600; }
+        .status-open { color: var(--warning); font-weight: 600; }
+
+        .badge-buy {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .badge-sell {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>TradingView Data Extractor Pro</h1>
+                <p>Nifty Intraday Options Backtesting & Strategy Analyzer</p>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-btn">Data Extractor</a>
+                <a href="/analyzer" class="nav-btn">Strategy Analyzer</a>
+                <a href="/journal" class="nav-btn active">Trade Journal</a>
+                <a href="/settings" class="nav-btn">Settings</a>
+            </div>
+        </header>
+
+        <!-- Stats Board -->
+        <div class="metrics-board">
+            <div class="metric-card">
+                <div class="metric-label">Total Trades</div>
+                <div class="metric-value" id="statTotal">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Win Rate</div>
+                <div class="metric-value" id="statWinRate">0.0%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Total Points P&amp;L</div>
+                <div class="metric-value" id="statTotalPnl">0.00</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Avg P&amp;L Per Trade</div>
+                <div class="metric-value" id="statAvgPnl">0.00</div>
+            </div>
+        </div>
+
+        <!-- Journal Trade List -->
+        <div class="card">
+            <div class="card-title">
+                <span>📖 Persistent Paper Trades Ledger</span>
+                <div style="display:flex; gap:10px;">
+                    <button id="exportCsvBtn" class="btn-secondary">📥 Export CSV</button>
+                    <button id="clearJournalBtn" class="btn-danger">🗑️ Clear Journal</button>
+                </div>
+            </div>
+            
+            <div class="preview-table-wrap">
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Date / Time (IST)</th>
+                            <th>Symbol</th>
+                            <th>Side</th>
+                            <th>Execution Price</th>
+                            <th>Qty</th>
+                            <th>Product</th>
+                            <th>Order Type</th>
+                            <th>Outcome P&amp;L</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="journalBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                                No trade entries logged yet. Execute paper trades from the strategy analyzer.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allTrades = [];
+
+        function loadJournal() {
+            fetch('/api/journal')
+                .then(res => res.json())
+                .then(data => {
+                    allTrades = data.trades || [];
+                    renderJournal(allTrades);
+                })
+                .catch(err => console.error("Error loading journal:", err));
+        }
+
+        function renderJournal(trades) {
+            const tbody = document.getElementById('journalBody');
+            
+            if (trades.length === 0) {
+                tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                        No trade entries logged yet. Execute paper trades from the strategy analyzer.
+                    </td>
+                </tr>`;
+                updateStats([]);
+                return;
+            }
+
+            let html = '';
+            [...trades].reverse().forEach(t => {
+                const dt = new Date(t.timestamp);
+                const dateStr = dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false }).replace(',', '');
+                
+                const sideBadge = t.action === 'BUY' 
+                    ? `<span class="badge-buy">BUY</span>` 
+                    : `<span class="badge-sell">SELL</span>`;
+                
+                let pnlClass = 'status-open';
+                let pnlLabel = '0.00 pts';
+                if (t.pnl > 0) {
+                    pnlClass = 'status-win';
+                    pnlLabel = `+${t.pnl.toFixed(2)} pts`;
+                } else if (t.pnl < 0) {
+                    pnlClass = 'status-loss';
+                    pnlLabel = `${t.pnl.toFixed(2)} pts`;
+                }
+
+                html += `
+                <tr>
+                    <td>${dateStr}</td>
+                    <td style="font-family:'JetBrains Mono', monospace; font-weight:600;">${t.symbol}</td>
+                    <td>${sideBadge}</td>
+                    <td style="font-family:'JetBrains Mono', monospace;">₹${t.price.toFixed(2)}</td>
+                    <td>${t.qty}</td>
+                    <td>${t.product}</td>
+                    <td>${t.order_type}</td>
+                    <td class="${pnlClass}">${pnlLabel}</td>
+                    <td style="color:var(--text-secondary); font-size:12px;">${t.status}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+            updateStats(trades);
+        }
+
+        function updateStats(trades) {
+            document.getElementById('statTotal').textContent = trades.length;
+            
+            if (trades.length === 0) {
+                document.getElementById('statWinRate').textContent = '0.0%';
+                document.getElementById('statTotalPnl').textContent = '0.00';
+                document.getElementById('statAvgPnl').textContent = '0.00';
+                document.getElementById('statTotalPnl').className = 'metric-value';
+                document.getElementById('statAvgPnl').className = 'metric-value';
+                return;
+            }
+
+            const closedTrades = trades.filter(t => t.pnl !== 0);
+            const wins = closedTrades.filter(t => t.pnl > 0).length;
+            const totalClosed = closedTrades.length;
+            
+            const winRate = totalClosed > 0 ? (wins / totalClosed * 100) : 0.0;
+            const totalPnl = trades.reduce((acc, curr) => acc + (curr.pnl || 0), 0);
+            const avgPnl = totalClosed > 0 ? (totalPnl / totalClosed) : 0;
+
+            document.getElementById('statWinRate').textContent = `${winRate.toFixed(1)}%`;
+            
+            const totalEl = document.getElementById('statTotalPnl');
+            totalEl.textContent = `${totalPnl > 0 ? '+' : ''}${totalPnl.toFixed(2)}`;
+            totalEl.className = 'metric-value ' + (totalPnl > 0 ? 'status-win' : totalPnl < 0 ? 'status-loss' : '');
+
+            const avgEl = document.getElementById('statAvgPnl');
+            avgEl.textContent = `${avgPnl > 0 ? '+' : ''}${avgPnl.toFixed(2)}`;
+            avgEl.className = 'metric-value ' + (avgPnl > 0 ? 'status-win' : avgPnl < 0 ? 'status-loss' : '');
+        }
+
+        document.getElementById('clearJournalBtn').addEventListener('click', () => {
+            if (confirm("Are you sure you want to permanently clear all trade logs?")) {
+                fetch('/api/journal', { method: 'DELETE' })
+                    .then(res => res.json())
+                    .then(data => {
+                        loadJournal();
+                    })
+                    .catch(err => console.error("Error clearing journal:", err));
+            }
+        });
+
+        document.getElementById('exportCsvBtn').addEventListener('click', () => {
+            if (allTrades.length === 0) {
+                alert("No trade data available to export.");
+                return;
+            }
+
+            const header = ["Timestamp", "Symbol", "Action", "Price", "Quantity", "Product", "OrderType", "PnL", "Status"];
+            const rows = allTrades.map(t => [
+                t.timestamp,
+                t.symbol,
+                t.action,
+                t.price,
+                t.qty,
+                t.product,
+                t.order_type,
+                t.pnl,
+                t.status
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + [header.join(",")].concat(rows.map(e => e.join(","))).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "options_paper_trade_journal.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        loadJournal();
+    </script>
+</body>
+</html>

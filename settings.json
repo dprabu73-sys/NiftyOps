@@ -1,0 +1,10 @@
+{
+  "lot_size": 50,
+  "target_points": 25,
+  "sl_type": "close",
+  "exchange": "NFO",
+  "product": "MIS",
+  "sound_alerts": false,
+  "zerodha_api_key": "test_key",
+  "zerodha_api_secret": "test_secret"
+}

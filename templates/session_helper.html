@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Helper | NiftyOps</title>
+    <link rel="stylesheet" href="/static/css/design-system.css">
+</head>
+<body>
+    <div class="app-shell sidebar-collapsed">
+        <header class="topbar">
+            <div class="topbar-left">
+                <a href="/" class="logo-container">
+                    <span class="logo-icon">N</span>
+                    <span>NiftyOps</span>
+                </a>
+            </div>
+            <div class="topbar-right">
+                <button id="theme-toggle" class="btn btn-icon">☀️</button>
+            </div>
+        </header>
+
+        <nav class="sidebar">
+            <a href="/" class="nav-link"><span class="icon">🔙</span><span>Back to App</span></a>
+        </nav>
+
+        <main class="main-content" style="display: flex; justify-content: center; align-items: center;">
+            <div class="card" style="max-width: 600px; width: 100%;">
+                <div class="card-header">
+                    <h2 class="card-title text-center w-full">🔑 TradingView Session Helper</h2>
+                </div>
+                
+                <div class="flex-col gap-md mt-md">
+                    <p class="text-muted">Follow these steps to quickly capture your TradingView session for data extraction.</p>
+                    
+                    <ol class="flex-col gap-sm pl-md" style="list-style-type: decimal;">
+                        <li>Drag the button below to your browser's Bookmarks Bar.</li>
+                        <li>Open <a href="https://in.tradingview.com/" target="_blank" class="text-info" style="text-decoration:none;">TradingView</a> and ensure you are logged in.</li>
+                        <li>Click the bookmarklet in your Bookmarks Bar while on TradingView.</li>
+                        <li>It will automatically capture your session and send it to NiftyOps.</li>
+                    </ol>
+
+                    <div class="text-center mt-lg mb-lg">
+                        <a href="javascript:(function(){var name='sessionid';var match=document.cookie.match(new RegExp('(^| )'+name+'=([^;]+)'));if(match){var sessionId=match[2];fetch('http://127.0.0.1:5005/api/set-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sessionId})}).then(r=>r.json()).then(data=>{alert('Session sent to NiftyOps successfully!');window.location.href='http://127.0.0.1:5005/settings';}).catch(e=>alert('Failed to send session: '+e));}else{alert('Session ID cookie not found. Please log in first.');}})();" class="btn btn-primary" style="padding: 12px 24px; font-size: 1.1rem; cursor: grab; display: inline-block;">
+                            🔖 NiftyOps Session Catcher
+                        </a>
+                        <div class="text-muted text-sm mt-sm">↑ Drag this to your bookmarks bar</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/shared.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Options Intraday Strategy Analyzer</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151c2c;
+            --card-border: #243049;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #4f46e5;
+            --accent-hover: #6366f1;
+            --accent-glow: rgba(79, 70, 229, 0.4);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --input-bg: #0b0f19;
+            
+            /* Highlighting colors */
+            --entry-row: rgba(16, 185, 129, 0.15);
+            --entry-border: #10b981;
+            --target-row: rgba(79, 70, 229, 0.2);
+            --target-border: #818cf8;
+            --stop-row: rgba(239, 68, 68, 0.15);
+            --stop-border: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1150px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Navigation Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 20px;
+        }
+
+        .logo-section h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .logo-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-btn {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+
+        .nav-btn.active {
+            background-color: var(--accent);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* Main Workspace Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card Container Styling */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Form Controls */
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select,
+        textarea {
+            background-color: var(--input-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+            width: 100%;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-hover);
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        /* Toggle Button/Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--card-border);
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        /* File Upload Area */
+        .file-upload-wrap {
+            border: 2px dashed var(--card-border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.01);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .file-upload-wrap:hover {
+            border-color: var(--accent-hover);
+            background-color: rgba(79, 70, 229, 0.03);
+        }
+
+        .file-upload-wrap input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .file-upload-text span {
+            color: var(--accent-hover);
+            font-weight: 600;
+        }
+
+        /* Primary Button */
+        .btn-primary {
+            background-color: var(--accent);
+            color: var(--text-primary);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px var(--accent-glow);
+            text-align: center;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        /* Summary Metrics Board */
+        .metrics-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .metrics-board {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .metric-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .metric-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metric-val-pnl {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Status Colors */
+        .status-win { color: var(--success); }
+        .status-loss { color: var(--error); }
+        .status-open { color: var(--warning); }
+
+        /* Results table container */
+        .preview-table-wrap {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            background-color: #0b0f19;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .preview-table th {
+            background-color: #111827;
+            padding: 10px 14px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .preview-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Highlighting Row Styles */
+        .row-entry {
+            background-color: var(--entry-row) !important;
+            border-left: 4px solid var(--entry-border);
+        }
+        .row-target {
+            background-color: var(--target-row) !important;
+            border-left: 4px solid var(--target-border);
+        }
+        .row-stop {
+            background-color: var(--stop-row) !important;
+            border-left: 4px solid var(--stop-border);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-entry { background-color: var(--success); color: white; }
+        .badge-target { background-color: var(--accent); color: white; }
+        .badge-stop { background-color: var(--error); color: white; }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--card-border);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo-section">
+                <h1>TradingView Data Extractor Pro</h1>
+                <p>Nifty Intraday Options Backtesting & Strategy Analyzer</p>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-btn">Data Extractor</a>
+                <a href="/analyzer" class="nav-btn active">Strategy Analyzer</a>
+            </div>
+        </header>
+
+        <!-- Main Grid Layout -->
+        <div class="workspace">
+            
+            <!-- Left Card: Input & Main Configuration -->
+            <div class="card">
+                <div class="card-title">Data Input & Settings</div>
+                
+                <form id="analyzerForm" class="form-section">
+                    
+                    <!-- File Upload -->
+                    <div class="form-group">
+                        <label>Excel File Upload ("Strategy_Summary" & "5m_Live_Candles")</label>
+                        <div class="file-upload-wrap">
+                            <input type="file" id="excelFile" name="file" accept=".xlsx">
+                            <div class="file-upload-text" id="uploadStatusText">
+                                Drop Excel sheet here or <span>browse files</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Manual Baseline Inputs -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Option Type</label>
+                            <select id="optionType" name="option_type">
+                                <option value="call" selected>CALL Option</option>
+                                <option value="put">PUT Option</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Points</label>
+                            <input type="number" id="targetPoints" name="target_points" value="25" min="1">
+                        </div>
+                    </div>
+
+                    <!-- Toggle Close-based vs Low-based SL -->
+                    <div class="toggle-container">
+                        <div>
+                            <div style="font-weight: 600; font-size: 13px;">Low-Based Stop Loss</div>
+                            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">
+                                Trigger SL on candle Low instead of candle Close
+                            </div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="slTypeToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <input type="hidden" name="sl_type" id="slTypeVal" value="close">
+                    </div>
+
+                    <div style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin: 5px 0;"></div>
+
+                    <!-- Manual Baseline Entry values for guest/manual backtesting -->
+                    <div class="card-title" style="font-size: 15px;">Manual Entry & Baseline Data (Fallback)</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prev 15:15 Close (15m HA)</label>
+                            <input type="number" id="prevDayCloseHA" name="prev_day_1515_close_ha" value="0" step="0.05">
+                        </div>
+                        <div class="form-group">
+                            <label>Today 09:15 Close (15m HA)</label>
+                            <input type="number" id="today0915CloseHA" name="today_0915_close_ha" value="0" step="0.05">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>5m Candles JSON Data (Optional Manual entry)</label>
+                        <textarea id="candlesJson" name="candles" rows="3" placeholder='[{"time":"09:15","open":100,"high":120,"low":90,"close":110}]'></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-primary">⚡ Run Backtest Analysis</button>
+                </form>
+            </div>
+
+            <!-- Right Card: Manual Level Overrides -->
+            <div class="card">
+                <div class="card-title">Manual Logic Overrides</div>
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label>Override Baseline Price</label>
+                        <input type="number" id="overrideBaseline" placeholder="Bypass max(15:15 HA, 09:15 HA)" step="0.05">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Override Entry Price</label>
+                            <input type="number" id="overrideEntryPrice" placeholder="Custom Entry Level" step="0.05">
+                        </div>
+                        <div class="form-group">
+                            <label>Override Entry Time</label>
+                            <input type="text" id="overrideEntryTime" placeholder="e.g. 09:35">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Override Target Price</label>
+                            <input type="number" id="overrideTarget" placeholder="Custom Target Price" step="0.05">
+                        </div>
+                        <div class="form-group">
+                            <label>Override Stop-Loss Price</label>
+                            <input type="number" id="overrideSL" placeholder="Custom Stop Price" step="0.05">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Override Exit Time</label>
+                        <input type="text" id="overrideExitTime" placeholder="Force Exit at specific time (e.g. 15:20)">
+                    </div>
+                    
+                    <button type="button" id="recalculateBtn" class="btn-secondary">🔄 Recalculate & Apply Overrides</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard Display -->
+        <div class="metrics-board" id="metricsBoard" style="display: none;">
+            <div class="metric-card">
+                <div class="metric-label">Entry Price / Time</div>
+                <div class="metric-value" id="metricEntry">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Target / SL Levels</div>
+                <div class="metric-value" style="font-size: 15px; line-height: 1.4;" id="metricTargets">—</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Final Exit Reason & Time</div>
+                <div class="metric-value" id="metricExit">—</div>
+            </div>
+            <div class="metric-card" id="pnlCard">
+                <div class="metric-label">Trade P&L (Points)</div>
+                <div class="metric-value metric-val-pnl" id="metricPnl">—</div>
+            </div>
+        </div>
+
+        <!-- Candle Log Card -->
+        <div class="card" id="resultsCard" style="display: none;">
+            <div class="card-title">
+                <span>📊 Intraday 5m Candle Log</span>
+                <button id="exportCsvBtn" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;">📥 Export Log to CSV</button>
+            </div>
+            
+            <div class="preview-table-wrap">
+                <table class="preview-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Open</th>
+                            <th>High</th>
+                            <th>Low</th>
+                            <th>Close</th>
+                            <th>Baseline</th>
+                            <th>Tag/Event</th>
+                        </tr>
+                    </thead>
+                    <tbody id="candleBody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastAnalysisResponse = null;
+
+        // Sync Low/Close trigger value to hidden field
+        document.getElementById('slTypeToggle').addEventListener('change', function(e) {
+            document.getElementById('slTypeVal').value = e.target.checked ? 'low' : 'close';
+        });
+
+        // Show file name on select
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : "Drop Excel sheet here or browse files";
+            document.getElementById('uploadStatusText').innerHTML = `Selected file: <strong>${fileName}</strong>`;
+        });
+
+        // Run backtest form submission
+        document.getElementById('analyzerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            runAnalysis();
+        });
+
+        // Recalculate button trigger
+        document.getElementById('recalculateBtn').addEventListener('click', function() {
+            runAnalysis(true);
+        });
+
+        function runAnalysis(isRecalculate = false) {
+            const form = document.getElementById('analyzerForm');
+            const formData = new FormData(form);
+            
+            // Check if file is selected
+            const fileInput = document.getElementById('excelFile');
+            if (!isRecalculate && (!fileInput.files || fileInput.files.length === 0) && document.getElementById('candlesJson').value.trim() === '') {
+                alert("Please upload an Excel file or input manual candles JSON to run backtest.");
+                return;
+            }
+
+            // Append manual overrides if present
+            const manualBaseline = document.getElementById('overrideBaseline').value;
+            if (manualBaseline) formData.append('manual_baseline', manualBaseline);
+
+            const manualEntryPrice = document.getElementById('overrideEntryPrice').value;
+            if (manualEntryPrice) formData.append('manual_entry_price', manualEntryPrice);
+
+            const manualEntryTime = document.getElementById('overrideEntryTime').value;
+            if (manualEntryTime) formData.append('manual_entry_time', manualEntryTime);
+
+            const manualTarget = document.getElementById('overrideTarget').value;
+            if (manualTarget) formData.append('manual_target', manualTarget);
+
+            const manualSL = document.getElementById('overrideSL').value;
+            if (manualSL) formData.append('manual_sl', manualSL);
+
+            const manualExitTime = document.getElementById('overrideExitTime').value;
+            if (manualExitTime) formData.append('manual_exit_time', manualExitTime);
+
+            // Fetch and analyze
+            fetch('/api/analyze', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert("Error: " + data.error);
+                    return;
+                }
+                
+                lastAnalysisResponse = data;
+                renderResults(data);
+            })
+            .catch(err => {
+                console.error("Backtest request failed:", err);
+                alert("Failed to connect to backtester endpoint.");
+            });
+        }
+
+        function renderResults(data) {
+            // Show metrics and logs cards
+            document.getElementById('metricsBoard').style.display = 'grid';
+            document.getElementById('resultsCard').style.display = 'flex';
+
+            // 1. Render Metrics Dashboard
+            const entryStr = data.entry_time ? `${data.entry_price.toFixed(2)} <span style="font-size:12px;color:var(--text-secondary);">${data.entry_time}</span>` : '—';
+            document.getElementById('metricEntry').innerHTML = entryStr;
+
+            const targetsStr = `Tgt: ${data.target_value ? data.target_value.toFixed(2) : '—'}<br>SL: ${data.sl_value ? data.sl_value.toFixed(2) : '—'}`;
+            document.getElementById('metricTargets').innerHTML = targetsStr;
+
+            const exitStr = data.final_exit_time !== '—' ? `${data.final_exit_reason}<br><span style="font-size:12px;color:var(--text-secondary);">${data.final_exit_time}</span>` : 'Open/No Exit';
+            document.getElementById('metricExit').innerHTML = exitStr;
+
+            const pnlCard = document.getElementById('pnlCard');
+            const pnlVal = document.getElementById('metricPnl');
+            
+            pnlVal.className = 'metric-value';
+            if (data.pnl > 0) {
+                pnlVal.classList.add('status-win');
+                pnlVal.innerHTML = `+${data.pnl.toFixed(2)} pts`;
+            } else if (data.pnl < 0) {
+                pnlVal.classList.add('status-loss');
+                pnlVal.innerHTML = `${data.pnl.toFixed(2)} pts`;
+            } else {
+                pnlVal.classList.add('status-open');
+                pnlVal.innerHTML = `0.00 pts`;
+            }
+
+            // 2. Populate candles logs table
+            const tbody = document.getElementById('candleBody');
+            let html = '';
+            
+            data.candles.forEach(c => {
+                let rowClass = '';
+                let badge = '';
+                
+                if (c.tag === 'entry') {
+                    rowClass = 'row-entry';
+                    badge = `<span class="badge badge-entry">Entry (${data.entry_type})</span>`;
+                } else if (c.tag === 'target') {
+                    rowClass = 'row-target';
+                    badge = `<span class="badge badge-target">Target Hit</span>`;
+                } else if (c.tag === 'stop_loss') {
+                    rowClass = 'row-stop';
+                    badge = `<span class="badge badge-stop">SL Triggered</span>`;
+                } else if (c.tag === 'exit') {
+                    rowClass = 'row-stop';
+                    badge = `<span class="badge badge-stop">Manual Exit</span>`;
+                }
+
+                html += `
+                <tr class="${rowClass}">
+                    <td>${c.time}</td>
+                    <td>${c.open.toFixed(2)}</td>
+                    <td style="font-weight:600;">${c.high.toFixed(2)}</td>
+                    <td>${c.low.toFixed(2)}</td>
+                    <td>${c.close.toFixed(2)}</td>
+                    <td style="color:var(--text-secondary);">${data.final_baseline.toFixed(2)}</td>
+                    <td>${badge}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Export Log to CSV button trigger
+        document.getElementById('exportCsvBtn').addEventListener('click', function() {
+            if (!lastAnalysisResponse || !lastAnalysisResponse.candles) {
+                alert("No analysis data available to export.");
+                return;
+            }
+
+            const header = ["Time", "Open", "High", "Low", "Close", "Baseline", "Event"];
+            const rows = lastAnalysisResponse.candles.map(c => [
+                c.time,
+                c.open,
+                c.high,
+                c.low,
+                c.close,
+                lastAnalysisResponse.final_baseline,
+                c.tag || ""
+            ]);
+
+            let csvContent = "data:text/csv;charset=utf-8," 
+                + [header.join(",")].concat(rows.map(e => e.join(","))).join("\n");
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `strategy_backtest_log_${lastAnalysisResponse.entry_time || 'session'}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>

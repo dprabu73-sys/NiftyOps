@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+2: <html lang="en">
+3: <head>
+4:     <meta charset="UTF-8">
+5:     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6:     <title>Options Strategy Journal</title>
+7:     <!-- Google Fonts -->
+8:     <link rel="preconnect" href="https://fonts.googleapis.com">
+9:     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+10:     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+11: 
+12:     <style>
+13:         :root {
+14:             --bg-color: #0b0f19;
+15:             --card-bg: #151c2c;
+16:             --card-border: #243049;
+17:             --text-primary: #f8fafc;
+18:             --text-secondary: #94a3b8;
+19:             --accent: #4f46e5;
+20:             --accent-hover: #6366f1;
+21:             --accent-glow: rgba(79, 70, 229, 0.4);
+22:             --success: #10b981;
+23:             --error: #ef4444;
+24:             --warning: #f59e0b;
+25:             --input-bg: #0b0f19;
+26:         }
+27: 
+28:         * {
+29:             box-sizing: border-box;
+30:             margin: 0;
+31:             padding: 0;
+32:         }
+33: 
+34:         body {
+35:             font-family: 'Inter', sans-serif;
+36:             background-color: var(--bg-color);
+37:             color: var(--text-primary);
+38:             min-height: 100vh;
+39:             display: flex;
+40:             flex-direction: column;
+41:             align-items: center;
+42:             justify-content: flex-start;
+43:             padding: 40px 20px;
+44:             overflow-x: hidden;
+45:         }
+46: 
+47:         .container {
+48:             width: 100%;
+49:             max-width: 1150px;
+50:             display: flex;
+51:             flex-direction: column;
+52:             gap: 24px;
+53:         }
+54: 
+55:         /* Navigation Header */
+56:         header {
+57:             display: flex;
+58:             justify-content: space-between;
+59:             align-items: center;
+60:             border-bottom: 1px solid var(--card-border);
+61:             padding-bottom: 20px;
+62:         }
+63: 
+64:         .logo-section h1 {
+65:             font-size: 24px;
+66:             font-weight: 700;
+67:             letter-spacing: -0.5px;
+68:             background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+69:             -webkit-background-clip: text;
+70:             -webkit-text-fill-color: transparent;
+71:             margin-bottom: 4px;
+72:         }
+73: 
+74:         .logo-section p {
+75:             font-size: 14px;
+76:             color: var(--text-secondary);
+77:         }
+78: 
+79:         .nav-links {
+80:             display: flex;
+81:             gap: 8px;
+82:         }
+83: 
+84:         .nav-btn {
+85:             background-color: transparent;
+86:             border: 1px solid transparent;
+87:             color: var(--text-secondary);
+88:             padding: 8px 16px;
+89:             border-radius: 8px;
+90:             font-size: 14px;
+91:             font-weight: 600;
+92:             text-decoration: none;
+93:             transition: all 0.2s ease;
+94:             cursor: pointer;
+95:         }
+96: 
+97:         .nav-btn:hover {
+98:             color: var(--text-primary);
+99:             border-color: var(--text-secondary);
+100:         }
+101: 
+102:         .nav-btn.active {
+103:             background-color: var(--accent);
+104:             color: var(--text-primary);
+105:             border-color: var(--accent);
+106:             box-shadow: 0 0 12px var(--accent-glow);
+107:         }
+108: 
+109:         /* Metrics Grid */
+110:         .metrics-board {
+111:             display: grid;
+112:             grid-template-columns: repeat(4, 1fr);
+113:             gap: 16px;
+114:         }
+115: 
+116:         @media (max-width: 768px) {
+117:             .metrics-board {
+118:                 grid-template-columns: 1fr 1fr;
+119:             }
+120:         }
+121: 
+122:         .metric-card {
+123:             background-color: var(--card-bg);
+124:             border: 1px solid var(--card-border);
+125:             border-radius: 12px;
+126:             padding: 20px;
+127:             display: flex;
+128:             flex-direction: column;
+129:             gap: 8px;
+130:             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+131:         }
+132: 
+133:         .metric-label {
+134:             font-size: 11px;
+135:             font-weight: 600;
+136:             text-transform: uppercase;
+137:             letter-spacing: 0.8px;
+138:             color: var(--text-secondary);
+139:         }
+140: 
+141:         .metric-value {
+142:             font-size: 24px;
+143:             font-weight: 700;
+144:             color: var(--text-primary);
+145:             font-family: 'JetBrains Mono', monospace;
+146:         }
+147: 
+148:         /* Table Card */
+149:         .card {
+150:             background-color: var(--card-bg);
+151:             border: 1px solid var(--card-border);
+152:             border-radius: 16px;
+153:             padding: 24px;
+154:             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+155:             display: flex;
+156:             flex-direction: column;
+157:             gap: 20px;
+158:         }
+159: 
+160:         .card-title {
+161:             font-size: 16px;
+162:             font-weight: 600;
+163:             color: var(--text-primary);
+164:             border-left: 3px solid var(--accent);
+165:             padding-left: 10px;
+166:             display: flex;
+167:             justify-content: space-between;
+168:             align-items: center;
+169:         }
+170: 
+171:         .btn-secondary {
+172:             background-color: transparent;
+173:             border: 1px solid var(--card-border);
+174:             color: var(--text-primary);
+175:             padding: 8px 16px;
+176:             border-radius: 8px;
+177:             font-size: 13px;
+178:             font-weight: 600;
+179:             cursor: pointer;
+180:             transition: all 0.2s ease;
+181:         }
+182: 
+183:         .btn-secondary:hover {
+184:             color: var(--text-primary);
+185:             border-color: var(--text-secondary);
+186:         }
+187: 
+188:         .btn-danger {
+189:             background: rgba(239, 68, 68, 0.1);
+190:             color: var(--error);
+191:             border: 1px solid rgba(239, 68, 68, 0.3);
+192:             padding: 8px 16px;
+193:             border-radius: 8px;
+194:             font-size: 13px;
+195:             font-weight: 600;
+196:             cursor: pointer;
+197:             transition: all 0.2s ease;
+198:         }
+199: 
+200:         .btn-danger:hover {
+201:             background: rgba(239, 68, 68, 0.2);
+202:             border-color: var(--error);
+203:         }
+204: 
+205:         .preview-table-wrap {
+206:             width: 100%;
+207:             overflow-x: auto;
+208:             border-radius: 8px;
+209:             border: 1px solid var(--card-border);
+210:         }
+211: 
+212:         .preview-table {
+213:             width: 100%;
+214:             border-collapse: collapse;
+215:             text-align: left;
+216:             font-size: 13px;
+217:         }
+218: 
+219:         .preview-table th, .preview-table td {
+220:             padding: 12px 16px;
+221:             border-bottom: 1px solid var(--card-border);
+222:         }
+223: 
+224:         .preview-table th {
+225:             background-color: rgba(255, 255, 255, 0.02);
+226:             color: var(--text-secondary);
+227:             font-weight: 600;
+228:             font-size: 11px;
+229:             text-transform: uppercase;
+230:             letter-spacing: 0.5px;
+231:         }
+232: 
+233:         .preview-table tbody tr:hover {
+234:             background-color: rgba(255, 255, 255, 0.01);
+235:         }
+236: 
+237:         .status-win { color: var(--success); font-weight: 600; }
+238:         .status-loss { color: var(--error); font-weight: 600; }
+239:         .status-open { color: var(--warning); font-weight: 600; }
+240: 
+241:         .badge-buy {
+242:             background: rgba(16, 185, 129, 0.15);
+243:             color: #10b981;
+244:             padding: 2px 6px;
+245:             border-radius: 4px;
+246:             font-weight: 700;
+247:             font-size: 11px;
+248:             border: 1px solid rgba(16, 185, 129, 0.3);
+249:         }
+250: 
+251:         .badge-sell {
+252:             background: rgba(239, 68, 68, 0.15);
+253:             color: #ef4444;
+254:             padding: 2px 6px;
+255:             border-radius: 4px;
+256:             font-weight: 700;
+257:             font-size: 11px;
+258:             border: 1px solid rgba(239, 68, 68, 0.3);
+259:         }
+260:     </style>
+261: </head>
+262: <body>
+263:     <div class="container">
+264:         <!-- Header -->
+265:         <header>
+266:             <div class="logo-section">
+267:                 <h1>TradingView Data Extractor Pro</h1>
+268:                 <p>Nifty Intraday Options Backtesting & Strategy Analyzer</p>
+269:             </div>
+270:             <div class="nav-links">
+271:                 <a href="/" class="nav-btn">Data Extractor</a>
+272:                 <a href="/analyzer" class="nav-btn">Strategy Analyzer</a>
+273:                 <a href="/journal" class="nav-btn active">Trade Journal</a>
+274:                 <a href="/settings" class="nav-btn">Settings</a>
+275:             </div>
+276:         </header>
+277: 
+278:         <!-- Stats Board -->
+279:         <div class="metrics-board">
+280:             <div class="metric-card">
+281:                 <div class="metric-label">Total Trades</div>
+282:                 <div class="metric-value" id="statTotal">0</div>
+283:             </div>
+284:             <div class="metric-card">
+285:                 <div class="metric-label">Win Rate</div>
+286:                 <div class="metric-value" id="statWinRate">0.0%</div>
+287:             </div>
+288:             <div class="metric-card">
+289:                 <div class="metric-label">Total Points P&amp;L</div>
+290:                 <div class="metric-value" id="statTotalPnl">0.00</div>
+291:             </div>
+292:             <div class="metric-card">
+293:                 <div class="metric-label">Avg P&amp;L Per Trade</div>
+294:                 <div class="metric-value" id="statAvgPnl">0.00</div>
+295:             </div>
+296:         </div>
+297: 
+298:         <!-- Journal Trade List -->
+299:         <div class="card">
+300:             <div class="card-title">
+301:                 <span>📖 Persistent Paper Trades Ledger</span>
+302:                 <div style="display:flex; gap:10px;">
+303:                     <button id="exportCsvBtn" class="btn-secondary">📥 Export CSV</button>
+304:                     <button id="clearJournalBtn" class="btn-danger">🗑️ Clear Journal</button>
+305:                 </div>
+306:             </div>
+307:             
+308:             <div class="preview-table-wrap">
+309:                 <table class="preview-table">
+310:                     <thead>
+311:                         <tr>
+312:                             <th>Date / Time (IST)</th>
+313:                             <th>Symbol</th>
+314:                             <th>Side</th>
+315:                             <th>Execution Price</th>
+316:                             <th>Qty</th>
+317:                             <th>Product</th>
+318:                             <th>Order Type</th>
+319:                             <th>Outcome P&amp;L</th>
+320:                             <th>Status</th>
+321:                         </tr>
+322:                     </thead>
+323:                     <tbody id="journalBody">
+324:                         <tr>
+325:                             <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+326:                                 No trade entries logged yet. Execute paper trades from the strategy analyzer.
+327:                             </td>
+328:                         </tr>
+329:                     </tbody>
+330:                 </table>
+331:             </div>
+332:         </div>
+333:     </div>
+334: 
+335:     <script>
+336:         let allTrades = [];
+337: 
+338:         function loadJournal() {
+339:             fetch('/api/journal')
+340:                 .then(res => res.json())
+341:                 .then(data => {
+342:                     allTrades = data.trades || [];
+343:                     renderJournal(allTrades);
+344:                 })
+345:                 .catch(err => console.error("Error loading journal:", err));
+346:         }
+347: 
+348:         function renderJournal(trades) {
+349:             const tbody = document.getElementById('journalBody');
+350:             
+351:             if (trades.length === 0) {
+352:                 tbody.innerHTML = `
+353:                 <tr>
+354:                     <td colspan="9" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+355:                         No trade entries logged yet. Execute paper trades from the strategy analyzer.
+356:                     </td>
+357:                 </tr>`;
+358:                 updateStats([]);
+359:                 return;
+360:             }
+361: 
+362:             let html = '';
+363:             [...trades].reverse().forEach(t => {
+364:                 const dt = new Date(t.timestamp);
+365:                 const dateStr = dt.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: false }).replace(',', '');
+366:                 
+367:                 const sideBadge = t.action === 'BUY' 
+368:                     ? `<span class="badge-buy">BUY</span>` 
+369:                     : `<span class="badge-sell">SELL</span>`;
+370:                 
+371:                 let pnlClass = 'status-open';
+372:                 let pnlLabel = '0.00 pts';
+373:                 if (t.pnl > 0) {
+374:                     pnlClass = 'status-win';
+375:                     pnlLabel = `+${t.pnl.toFixed(2)} pts`;
+376:                 } else if (t.pnl < 0) {
+377:                     pnlClass = 'status-loss';
+378:                     pnlLabel = `${t.pnl.toFixed(2)} pts`;
+379:                 }
+380: 
+381:                 html += `
+382:                 <tr>
+383:                     <td>${dateStr}</td>
+384:                     <td style="font-family:'JetBrains Mono', monospace; font-weight:600;">${t.symbol}</td>
+385:                     <td>${sideBadge}</td>
+386:                     <td style="font-family:'JetBrains Mono', monospace;">₹${t.price.toFixed(2)}</td>
+387:                     <td>${t.qty}</td>
+388:                     <td>${t.product}</td>
+389:                     <td>${t.order_type}</td>
+390:                     <td class="${pnlClass}">${pnlLabel}</td>
+391:                     <td style="color:var(--text-secondary); font-size:12px;">${t.status}</td>
+392:                 </tr>`;
+393:             });
+394:             tbody.innerHTML = html;
+395:             updateStats(trades);
+396:         }
+397: 
+398:         function updateStats(trades) {
+399:             document.getElementById('statTotal').textContent = trades.length;
+400:             
+401:             if (trades.length === 0) {
+402:                 document.getElementById('statWinRate').textContent = '0.0%';
+403:                 document.getElementById('statTotalPnl').textContent = '0.00';
+404:                 document.getElementById('statAvgPnl').textContent = '0.00';
+405:                 document.getElementById('statTotalPnl').className = 'metric-value';
+406:                 document.getElementById('statAvgPnl').className = 'metric-value';
+407:                 return;
+408:             }
+409: 
+410:             const closedTrades = trades.filter(t => t.pnl !== 0);
+411:             const wins = closedTrades.filter(t => t.pnl > 0).length;
+412:             const totalClosed = closedTrades.length;
+413:             
+414:             const winRate = totalClosed > 0 ? (wins / totalClosed * 100) : 0.0;
+415:             const totalPnl = trades.reduce((acc, curr) => acc + (curr.pnl || 0), 0);
+416:             const avgPnl = totalClosed > 0 ? (totalPnl / totalClosed) : 0;
+417: 
+418:             document.getElementById('statWinRate').textContent = `${winRate.toFixed(1)}%`;
+419:             
+420:             const totalEl = document.getElementById('statTotalPnl');
+421:             totalEl.textContent = `${totalPnl > 0 ? '+' : ''}${totalPnl.toFixed(2)}`;
+422:             totalEl.className = 'metric-value ' + (totalPnl > 0 ? 'status-win' : totalPnl < 0 ? 'status-loss' : '');
+423: 
+424:             const avgEl = document.getElementById('statAvgPnl');
+425:             avgEl.textContent = `${avgPnl > 0 ? '+' : ''}${avgPnl.toFixed(2)}`;
+426:             avgEl.className = 'metric-value ' + (avgPnl > 0 ? 'status-win' : avgPnl < 0 ? 'status-loss' : '');
+427:         }
+428: 
+429:         document.getElementById('clearJournalBtn').addEventListener('click', () => {
+430:             if (confirm("Are you sure you want to permanently clear all trade logs?")) {
+431:                 fetch('/api/journal', { method: 'DELETE' })
+432:                     .then(res => res.json())
+433:                     .then(data => {
+434:                         loadJournal();
+435:                     })
+436:                     .catch(err => console.error("Error clearing journal:", err));
+437:             }
+438:         });
+439: 
+440:         document.getElementById('exportCsvBtn').addEventListener('click', () => {
+441:             if (allTrades.length === 0) {
+442:                 alert("No trade data available to export.");
+443:                 return;
+444:             }
+445: 
+446:             const header = ["Timestamp", "Symbol", "Action", "Price", "Quantity", "Product", "OrderType", "PnL", "Status"];
+447:             const rows = allTrades.map(t => [
+448:                 t.timestamp,
+449:                 t.symbol,
+450:                 t.action,
+451:                 t.price,
+452:                 t.qty,
+453:                 t.product,
+454:                 t.order_type,
+455:                 t.pnl,
+456:                 t.status
+457:             ]);
+458: 
+459:             let csvContent = "data:text/csv;charset=utf-8," 
+460:                 + [header.join(",")].concat(rows.map(e => e.join(","))).join("\n");
+461: 
+462:             const encodedUri = encodeURI(csvContent);
+463:             const link = document.createElement("a");
+464:             link.setAttribute("href", encodedUri);
+465:             link.setAttribute("download", "options_paper_trade_journal.csv");
+466:             document.body.appendChild(link);
+467:             link.click();
+468:             document.body.removeChild(link);
+469:         });
+470: 
+471:         loadJournal();
+472:     </script>
+473: </body>
+474: </html>

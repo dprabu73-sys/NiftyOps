@@ -1,0 +1,1006 @@
+for cell in col:
+if cell.value is not None:
+max_len = max(max_len, len(str(cell.value)))
+# Add extra padding for headers
+ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+
+wb.save(file_path)
+log_task(task_id, f"Styled workbook with borders and header layouts successfully.", "success")
+except Exception as style_err:
+log_task(task_id, f"Style warning: Could not format sheet cells: {style_err}", "warn")
+
+log_task(task_id, f"Excel file written successfully.", "success")
+
+# Sync to Google Sheets if configured
+log_task(task_id, f"Checking Google Sheet URL configuration: '{google_sheet_url}'", "info")
+if google_sheet_url:
+try:
+log_task(task_id, "Syncing dataset to Google Sheet...", "info")
+import urllib.request
+import json
+
+records = []
+for _, row in df_export.iterrows():
+records.append({
+"date": str(row['Date']),
+"close_0928": float(row['09:28 Close']),
+"callStrike": int(row['Call Strike']),
+"putStrike": int(row['Put Strike']),
+# 15m Heikin Ashi values
+"callPrev1515Close15mHA": float(row['Call Prev 15:15 Close (15m HA)']) if row['Call Prev 15:15 Close (15m HA)'] != "" else "",
+"call0915Close15mHA": float(row['Call 09:15 Close (15m HA)']) if row['Call 09:15 Close (15m HA)'] != "" else "",
+"call0930Close15mHA": float(row['Call 09:30 Close (15m HA)']) if row['Call 09:30 Close (15m HA)'] != "" else "",
+"call0945Open15mHA": float(row['Call 09:45 Open (15m HA)']) if row['Call 09:45 Open (15m HA)'] != "" else "",
+"putPrev1515Close15mHA": float(row['Put Prev 15:15 Close (15m HA)']) if row['Put Prev 15:15 Close (15m HA)'] != "" else "",
+"put0915Close15mHA": float(row['Put 09:15 Close (15m HA)']) if row['Put 09:15 Close (15m HA)'] != "" else "",
+"put0930Close15mHA": float(row['Put 09:30 Close (15m HA)']) if row['Put 09:30 Close (15m HA)'] != "" else "",
+"put0945Open15mHA": float(row['Put 09:45 Open (15m HA)']) if row['Put 09:45 Open (15m HA)'] != "" else ""
+})
+
+payload = json.dumps(records).encode('utf-8')
+req = urllib.request.Request(
+google_sheet_url,
+data=payload,
+headers={
+'Content-Type': 'application/json',
+'User-Agent': 'Mozilla/5.0'
+},
+method='POST'
+)
+with urllib.request.urlopen(req, timeout=25) as res:
+res_data = json.loads(res.read().decode('utf-8'))
+if res_data.get('status') == 'success':
+log_task(task_id, f"Google Sheet synced successfully! Added {res_data.get('rows_added', len(records))} rows.", "success")
+else:
+log_task(task_id, f"Google Sheet sync error: {res_data.get('error', 'unknown')}", "error")
+except Exception as e:
+log_task(task_id, f"Failed to sync to Google Sheet: {str(e)}", "error")
+
+# Stream a clean table preview of the trailing data rows
+preview_text = "PREVIEW:\n" + df_export.tail(5).to_string(index=False)
+log_task(task_id, preview_text, "info")
+
+with tasks_lock:
+tasks[task_id]['status'] = 'completed'
+tasks[task_id]['file_path'] = file_path
+tasks[task_id]['download_name'] = filename
+
+except Exception as e:
+error_msg = str(e)
+log_task(task_id, f"Error: {error_msg}", "error")
+with tasks_lock:
+tasks[task_id]['status'] = 'failed'
+tasks[task_id]['error'] = error_msg
+
+# Web Server Routes
+@app.after_request
+def add_header(response):
+response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+response.headers['Pragma'] = 'no-cache'
+response.headers['Expires'] = '-1'
+return response
+
+@app.route('/')
+def home():
+return render_template('index.html')
+
+@app.route('/api/extract', methods=['POST'])
+def start_extraction():
+data = request.json or {}
+
+username = data.get('username', '').strip()
+password = data.get('password', '').strip()
+symbol = data.get('symbol', '').strip().upper()
+exchange = data.get('exchange', '').strip().upper()
+interval = data.get('interval', '1 Minute')
+n_bars = data.get('n_bars', 1000)
+filename = data.get('filename', 'export.xlsx').strip()
+time_filter = data.get('time_filter', 'all').strip()
+strike_offset = data.get('strike_offset', 100)
+google_sheet_url = data.get('google_sheet_url', '').strip()
+live_today_only = bool(data.get('live_today_only', False))
+
+if not symbol or not exchange:
+return jsonify({"error": "Symbol and Exchange are required"}), 400
+
+try:
+n_bars = int(n_bars)
+if n_bars <= 0:
+raise ValueError()
+except ValueError:
+return jsonify({"error": "Number of bars must be a positive integer"}), 400
+
+try:
+strike_offset = int(strike_offset)
+if strike_offset <= 0:
+raise ValueError()
+except (ValueError, TypeError):
+strike_offset = 100
+
+if not filename:
+filename = f"{symbol}_data.xlsx"
+
+task_id = str(uuid.uuid4())
+
+# Store task details
+with tasks_lock:
+tasks[task_id] = {
+'status': 'running',
+'logs': [],
+'file_path': None,
+'download_name': None,
+'error': None,
+'preview_summary': [],
+'preview_live_5m': []
+}
+
+# Start extraction thread
+thread = threading.Thread(
+target=extraction_thread,
+args=(task_id, username, password, symbol, exchange, interval, n_bars, filename, time_filter, strike_offset, google_sheet_url, live_today_only),
+daemon=True
+)
+thread.start()
+
+return jsonify({"task_id": task_id})
+
+
+@app.route('/api/task/<task_id>/symbols')
+def get_task_symbols(task_id):
+"""Return the dynamically computed call/put symbols for a running or completed task."""
+with tasks_lock:
+</span>
+</label>
+<p style="font-size:11px;color:var(--text-secondary);margin-top:6px;margin-left:28px;">
+Overrides bar count to 500 (just enough for today). Best for live intraday use after 09:28 IST.
+</p>
+</div>
+
+<!-- Strike Offset -->
+<div class="form-group">
+<label>Strike Offset (for Call &amp; Put Options)</label>
+<input type="number" id="strike_offset" value="100" min="1" step="50" placeholder="e.g. 100">
+</div>
+
+<!-- Output File Name -->
+<div class="form-group">
+<label>Output Excel Filename</label>
+<input type="text" id="filename" value="nifty_data.xlsx" placeholder="e.g. nifty_data.xlsx">
+</div>
+
+<!-- Google Sheets Live Sync -->
+<div class="form-group" style="border-top: 1px solid var(--card-border); padding-top: 14px; margin-top: 5px;">
+<label style="color: #a5b4fc;">Google Sheets Webhook URL (Optional)</label>
+<input type="text" id="google_sheet_url" placeholder="https://script.google.com/macros/s/.../exec">
+<p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+If configured, data automatically syncs live to your Google Sheet!
+</p>
+</div>
+
+<!-- Trigger Button -->
+<button class="btn-extract" id="extractBtn" onclick="startExtraction()">
+<div class="spinner"></div>
+<span id="btnText">Extract & Download Excel</span>
+</button>
+</div>
+</div>
+
+<!-- Right Card: Console Logging -->
+<div class="card console-card">
+<div class="console-header">
+<div class="card-title">Live Execution Logs</div>
+<button class="clear-btn" onclick="clearConsole()">Clear Logs</button>
+</div>
+
+<div class="terminal" id="terminal">
+<!-- Logs inserted dynamically -->
+</div>
+</div>
+</div>
+
+<footer>
+TradingView Data Extractor Standalone Tool &copy; 2026. Custom Built.
+</footer>
+</div>
+
+<!-- Dynamic Options Symbol Preview Panel -->
+<div style="width:100%;max-width:1100px;margin:0 auto 40px;">
+<div class="symbol-panel">
+<div class="symbol-panel-header">
+<div class="card-title" style="margin-bottom:0;">&#x1F4CA; Dynamic Options Symbol Preview</div>
+<div style="display:flex;align-items:center;gap:10px;">
+<span id="symbolStatusText" style="font-size:12px;color:var(--text-secondary);">Click &ldquo;Preview Symbols&rdquo; to compute call &amp; put symbols from today&rsquo;s 09:28 close price</span>
+<button class="btn-preview" id="previewBtn" onclick="previewSymbols()">
+<div class="symbol-spinner" id="symbolSpinner"></div>
+<span id="previewBtnText">&#x1F50D; Preview Symbols</span>
+</button>
+</div>
+</div>
+
+<div id="symbolTableWrap">
+<div class="symbol-empty" id="symbolEmpty">
+&#x23F3; No symbols loaded yet. Click &ldquo;Preview Symbols&rdquo; or run an extraction to see dynamically computed Call &amp; Put option contracts per trading day.
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const terminal = document.getElementById('terminal');
+const extractBtn = document.getElementById('extractBtn');
+const btnText = document.getElementById('btnText');
+let pollInterval = null;
+
+// ── Logging helpers ──────────────────────────────────────────────────
+function addLog(message, type = 'info') {
+const time = new Date().toLocaleTimeString();
+const entry = document.createElement('div');
+entry.className = `log-entry log-${type}`;
+if (message.startsWith('PREVIEW:')) {
+const tableContainer = document.createElement('div');
+tableContainer.className = 'log-table';
+tableContainer.textContent = message.replace('PREVIEW:', '');
+entry.appendChild(tableContainer);
+} else {
+entry.innerHTML = `
+<span class="log-time">[${time}]</span>
+<span class="log-text">${escapeHtml(message)}</span>
+`;
+}
+terminal.appendChild(entry);
+terminal.scrollTop = terminal.scrollHeight;
+}
+
+function escapeHtml(unsafe) {
+return unsafe
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#039;");
+}
+
+function clearConsole() {
+terminal.innerHTML = '';
+addLog('Console cleared. System ready.');
+}
+
+document.getElementById('google_sheet_url').value =
+localStorage.getItem('google_sheet_url') ||
+'https://script.google.com/macros/s/AKfycbzeINdkKQbkx80cqa1n3e4r60aH9A6Ilmf0AQ93QMmLi9E6wNmt9qTakY85LpCqjZH5cw/exec';
+
+addLog('System initialized. Awaiting extraction parameters...');
+
+function setExtractingState(isExtracting) {
+if (isExtracting) {
+extractBtn.disabled = true;
+extractBtn.classList.add('extracting');
+btnText.textContent = 'Extracting...';
+} else {
+extractBtn.disabled = false;
+extractBtn.classList.remove('extracting');
+btnText.textContent = 'Extract & Download Excel';
+}
+}
+
+// ── Symbol Preview Panel ─────────────────────────────────────────────
+function getFormValues() {
+return {
+username:      document.getElementById('username').value.trim(),
+password:      document.getElementById('password').value.trim(),
+symbol:        document.getElementById('symbol').value.trim().toUpperCase(),
+exchange:      document.getElementById('exchange').value.trim().toUpperCase(),
+n_bars:        parseInt(document.getElementById('n_bars').value) || 5000,
+strike_offset: parseInt(document.getElementById('strike_offset').value) || 100
+};
+}
+
+// ── Live Mode toggle ─────────────────────────────────────────────────
+function onLiveModeToggle(chk) {
+if (chk.checked) {
+// Force 09:28 Only radio
+document.querySelector('input[name="time_filter"][value="0928"]').checked = true;
+// Set bar count to 500 — enough to cover just today's 1-min bars
+document.getElementById('n_bars').value = 500;
+document.getElementById('n_bars').disabled = true;
+} else {
+document.getElementById('n_bars').disabled = false;
+}
+}
+
+function todayIST() {
+return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD
+}
+
+function renderSymbolTable(rows) {
+const wrap  = document.getElementById('symbolTableWrap');
+const today = todayIST();
+
+if (!rows || rows.length === 0) {
+wrap.innerHTML = '<div class="symbol-empty">No 09:28 bars found in the fetched data.</div>';
+return;
+}
+
+// Parse expiry from 6-digit code YYMMDD → Date object for comparison
+function expiryDate(expStr) {
+// expStr e.g. "260709" → year=2026, month=07, day=09
+const yy = parseInt(expStr.slice(0,2)) + 2000;
+const mm = parseInt(expStr.slice(2,4)) - 1; // 0-indexed
+const dd = parseInt(expStr.slice(4,6));
+return new Date(yy, mm, dd);
+}
+
+function isExpired(expStr) {
+const exp  = expiryDate(expStr);
+const now  = new Date();
+now.setHours(0,0,0,0);
+return exp < now;
+}
+
+function tvLink(sym, label, colorClass) {
+// Correct TradingView URL format for NSE option symbols
+const url = `https://www.tradingview.com/chart/?symbol=NSE%3A${encodeURIComponent(sym)}`;
+return `<a class="tv-link ${colorClass}" href="${url}" target="_blank"
+title="Open ${sym} in TradingView">&#x1F4C8; Open Chart</a>`;
+}
+
+function expiredBadge() {
+return `<span style="font-size:11px;color:var(--text-secondary);
+background:rgba(255,255,255,0.04);border:1px solid var(--card-border);
+border-radius:5px;padding:3px 8px;">&#x23F1; Expired</span>`;
+}
+
+let html = `
+<div class="symbol-table-wrap">
+<table class="symbol-table">
+<thead><tr>
+<th>Date</th>
+<th>09:28 Close</th>
+<th>Expiry</th>
+<th>&#x1F7E2; Call Strike</th>
+<th>CALL Symbol</th>
+<th>TV Chart (Call)</th>
+<th>&#x1F534; Put Strike</th>
+<th>PUT Symbol</th>
+<th>TV Chart (Put)</th>
+</tr></thead>
+<tbody>`;
+
+rows.slice().reverse().forEach(r => {
+const isToday  = r.date === today;
+const expired  = isExpired(r.expiry);
+const expLabel = r.expiry_label || r.expiry;
+
+html += `
+<tr class="${isToday ? 'today-row' : ''}">
+<td style="color:${isToday ? 'var(--success)':'var(--text-primary)'};
+font-weight:${isToday ? 600 : 400};">
+${r.date}${isToday ? ' &#x1F7E2;' : ''}
+</td>
+<td style="color:var(--text-primary);font-family:'JetBrains Mono',monospace;">
+${r.close_0928.toLocaleString('en-IN',{minimumFractionDigits:2})}
+</td>
+<td style="color:${expired ? 'var(--text-secondary)':'#a5b4fc'};font-size:11px;">
+${expLabel}${expired ? ' <span style="color:#6b7280;">(expired)</span>' : ''}
+</td>
+<td style="color:#34d399;font-weight:600;">${r.call_strike}</td>
+<td>
+<span class="sym-badge call-badge"
+onclick="copyText('${r.call_sym}',this)"
+title="Click to copy">
+&#x1F4CB; ${r.call_sym}
+</span>
+</td>
+<td>${expired ? expiredBadge() : tvLink(r.call_sym,'Call','')}</td>
+<td style="color:#f87171;font-weight:600;">${r.put_strike}</td>
+<td>
+<span class="sym-badge put-badge"
+onclick="copyText('${r.put_sym}',this)"
+title="Click to copy">
+&#x1F4CB; ${r.put_sym}
+</span>
+</td>
+<td>${expired ? expiredBadge() : tvLink(r.put_sym,'Put','')}</td>
+</tr>`;
+});
+
+html += '</tbody></table></div>';
+wrap.innerHTML = html;
+}
+
+function copyText(text, el) {
+navigator.clipboard.writeText(text).then(() => {
+const orig = el.innerHTML;
+el.innerHTML = el.innerHTML.replace('&#x1F4CB;', '&#x2705;');
+el.style.borderColor = '#10b981';
+setTimeout(() => { el.innerHTML = orig; el.style.borderColor = ''; }, 1500);
+});
+}
+
+async function previewSymbols() {
+const btn    = document.getElementById('previewBtn');
+const spin   = document.getElementById('symbolSpinner');
+const txt    = document.getElementById('previewBtnText');
+const status = document.getElementById('symbolStatusText');
+const liveMode = document.getElementById('live_today_only').checked;
+
+btn.disabled = true;
+spin.style.display = 'inline-block';
+txt.textContent = 'Computing...';
+status.textContent = liveMode
+? 'Live Mode: fetching today\'s 09:28 bar only...'
+: 'Fetching 09:28 bars and computing option symbols...';
+
+try {
+const vals = getFormValues();
+if (liveMode) vals.n_bars = 500; // override for today-only
+const resp = await fetch('/api/preview_symbols', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(vals)
+});
+const data = await resp.json();
+
+if (!resp.ok || data.error) {
+status.textContent = 'Error: ' + (data.error || 'Unknown error');
+document.getElementById('symbolTableWrap').innerHTML =
+`<div class="symbol-empty" style="color:var(--error);">&#x26A0; ${data.error || 'Failed to fetch symbols'}</div>`;
+} else {
+const shown = liveMode ? data.symbols.slice(-1) : data.symbols; // live = only last (today)
+renderSymbolTable(shown);
+const mode = liveMode ? '&#x26A1; Live (today only)' : 'Historical';
+status.textContent = `${mode} — ${shown.length} day(s) shown. Click badge to copy, or open active contracts in TradingView.`;
+}
+} catch (err) {
+status.textContent = 'Network error: ' + err.message;
+} finally {
+btn.disabled = false;
+spin.style.display = 'none';
+txt.textContent = '&#x1F50D; Preview Symbols';
+}
+}
+
+// ── Extraction ───────────────────────────────────────────────────────
+async function startExtraction() {
+const username        = document.getElementById('username').value.trim();
+const password        = document.getElementById('password').value.trim();
+const symbol          = document.getElementById('symbol').value.trim();
+const exchange        = document.getElementById('exchange').value.trim();
+const interval        = document.getElementById('interval').value;
+const liveMode        = document.getElementById('live_today_only').checked;
+const n_bars          = liveMode ? 500 : parseInt(document.getElementById('n_bars').value);
+const filename        = document.getElementById('filename').value.trim();
+const time_filter     = liveMode ? '0928'
+: document.querySelector('input[name="time_filter"]:checked').value;
+const strike_offset   = parseInt(document.getElementById('strike_offset').value) || 100;
+const google_sheet_url = document.getElementById('google_sheet_url').value.trim();
+
+localStorage.setItem('google_sheet_url', google_sheet_url);
+
+if (!symbol || !exchange || !filename) {
+addLog('Validation failed. Please verify Symbol, Exchange, and Filename.', 'error');
+return;
+}
+
+setExtractingState(true);
+addLog(`Initiating extraction job for ${symbol}:${exchange}...`, 'info');
+
+// Reset symbol panel
+document.getElementById('symbolStatusText').textContent = 'Computing symbols during extraction...';
+document.getElementById('symbolTableWrap').innerHTML =
+'<div class="symbol-empty">&#x23F3; Symbols will appear here as each trading day is processed...</div>';
+
+try {
+const response = await fetch('/api/extract', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ username, password, symbol, exchange, interval,
+n_bars, filename, time_filter, strike_offset, google_sheet_url,
+live_today_only: liveMode })
+});
+
+const data = await response.json();
+if (response.status !== 200 || !data.task_id) {
+addLog(data.error || 'Failed to start extraction task', 'error');
+setExtractingState(false);
+return;
+}
+
+const taskId = data.task_id;
+addLog(`Job submitted successfully. Task ID: ${taskId}`, 'info');
+
+let lastLogIndex = 0;
+pollInterval = setInterval(async () => {
+try {
+const [pollResp, symResp] = await Promise.all([
+fetch(`/api/task/${taskId}?since=${lastLogIndex}`),
+fetch(`/api/task/${taskId}/symbols`)
+]);
+
+const pollData = await pollResp.json();
+const symData  = await symResp.json();
+
+// Update log console
+if (pollData.new_logs && pollData.new_logs.length > 0) {
+pollData.new_logs.forEach(logObj => addLog(logObj.message, logObj.type));
+lastLogIndex += pollData.new_logs.length;
+}
+
+// Update symbol table in real-time
+if (symData.symbols && symData.symbols.length > 0) {
+// Add expiry_label since live data doesn't include it
+symData.symbols.forEach(r => { r.expiry_label = r.expiry; });
+renderSymbolTable(symData.symbols);
+document.getElementById('symbolStatusText').textContent =
+`Showing ${symData.symbols.length} day(s) — updates live during extraction.`;
+}
+
+if (pollData.status === 'completed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+addLog('Job finished. Export completed successfully. Starting file download...', 'success');
+document.getElementById('symbolStatusText').textContent =
+`Extraction complete. ${symData.symbols ? symData.symbols.length : ''} trading day(s) processed.`;
+window.location.href = `/api/download/${taskId}`;
+} else if (pollData.status === 'failed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+addLog(`Job failed: ${pollData.error}`, 'error');
+}
+
+} catch (err) {
+clearInterval(pollInterval);
+setExtractingState(false);
+addLog(`Polling failed: ${err.message}`, 'error');
+}
+}, 500);
+
+} catch (err) {
+addLog(`Network error starting task: ${err.message}`, 'error');
+setExtractingState(false);
+}
+}
+</script>
+</body>
+</html>
+
+el.innerHTML = el.innerHTML.replace('&#x1F4CB;', '&#x2705;');
+el.style.borderColor = '#10b981';
+setTimeout(() => { el.innerHTML = orig; el.style.borderColor = ''; }, 1500);
+});
+}
+
+async function previewSymbols() {
+const btn    = document.getElementById('previewBtn');
+const spin   = document.getElementById('symbolSpinner');
+const txt    = document.getElementById('previewBtnText');
+const status = document.getElementById('symbolStatusText');
+const liveMode = document.getElementById('live_today_only').checked;
+
+btn.disabled = true;
+spin.style.display = 'inline-block';
+txt.textContent = 'Computing...';
+status.textContent = liveMode
+? 'Live Mode: fetching today\'s 09:28 bar only...'
+: 'Fetching 09:28 bars and computing option symbols...';
+
+try {
+const vals = getFormValues();
+if (liveMode) vals.n_bars = 500; // override for today-only
+const resp = await fetch('/api/preview_symbols', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(vals)
+});
+const data = await resp.json();
+
+if (!resp.ok || data.error) {
+status.textContent = 'Error: ' + (data.error || 'Unknown error');
+document.getElementById('symbolTableWrap').innerHTML =
+`<div class="symbol-empty" style="color:var(--error);">&#x26A0; ${data.error || 'Failed to fetch symbols'}</div>`;
+} else {
+const shown = liveMode ? data.symbols.slice(-1) : data.symbols; // live = only last (today)
+renderSymbolTable(shown);
+const mode = liveMode ? '&#x26A1; Live (today only)' : 'Historical';
+status.textContent = `${mode} — ${shown.length} day(s) shown. Click badge to copy, or open active contracts in TradingView.`;
+}
+} catch (err) {
+status.textContent = 'Network error: ' + err.message;
+} finally {
+btn.disabled = false;
+spin.style.display = 'none';
+txt.textContent = '&#x1F50D; Preview Symbols';
+}
+}
+
+// ── Extraction ───────────────────────────────────────────────────────
+async function startExtraction() {
+const username        = document.getElementById('username').value.trim();
+const password        = document.getElementById('password').value.trim();
+const symbol          = document.getElementById('symbol').value.trim();
+const exchange        = document.getElementById('exchange').value.trim();
+const interval        = document.getElementById('interval').value;
+const liveMode        = document.getElementById('live_today_only').checked;
+const n_bars          = liveMode ? 500 : parseInt(document.getElementById('n_bars').value);
+const filename        = document.getElementById('filename').value.trim();
+const time_filter     = liveMode ? '0928'
+: document.querySelector('input[name="time_filter"]:checked').value;
+const strike_offset   = parseInt(document.getElementById('strike_offset').value) || 100;
+const google_sheet_url = document.getElementById('google_sheet_url').value.trim();
+
+localStorage.setItem('google_sheet_url', google_sheet_url);
+
+if (!symbol || !exchange || !filename) {
+addLog('Validation failed. Please verify Symbol, Exchange, and Filename.', 'error');
+return;
+}
+
+setExtractingState(true);
+addLog(`Initiating extraction job for ${symbol}:${exchange}...`, 'info');
+
+// Reset symbol panel
+document.getElementById('symbolStatusText').textContent = 'Computing symbols during extraction...';
+document.getElementById('symbolTableWrap').innerHTML =
+'<div class="symbol-empty">&#x23F3; Symbols will appear here as each trading day is processed...</div>';
+
+try {
+const response = await fetch('/api/extract', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ username, password, symbol, exchange, interval,
+n_bars, filename, time_filter, strike_offset, google_sheet_url,
+live_today_only: liveMode })
+});
+
+const data = await response.json();
+if (response.status !== 200 || !data.task_id) {
+addLog(data.error || 'Failed to start extraction task', 'error');
+setExtractingState(false);
+return;
+}
+
+const taskId = data.task_id;
+addLog(`Job submitted successfully. Task ID: ${taskId}`, 'info');
+
+let lastLogIndex = 0;
+pollInterval = setInterval(async () => {
+try {
+const [pollResp, symResp] = await Promise.all([
+fetch(`/api/task/${taskId}?since=${lastLogIndex}`),
+fetch(`/api/task/${taskId}/symbols`)
+]);
+
+const pollData = await pollResp.json();
+const symData  = await symResp.json();
+
+// Update log console
+if (pollData.new_logs && pollData.new_logs.length > 0) {
+pollData.new_logs.forEach(logObj => addLog(logObj.message, logObj.type));
+lastLogIndex += pollData.new_logs.length;
+}
+
+// Update symbol table in real-time
+if (symData.symbols && symData.symbols.length > 0) {
+// Add expiry_label since live data doesn't include it
+symData.symbols.forEach(r => { r.expiry_label = r.expiry; });
+renderSymbolTable(symData.symbols);
+document.getElementById('symbolStatusText').textContent =
+`Showing ${symData.symbols.length} day(s) — updates live during extraction.`;
+}
+
+if (pollData.status === 'completed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+addLog('Job finished. Export completed successfully. Starting file download...', 'success');
+document.getElementById('symbolStatusText').textContent =
+`Extraction complete. ${symData.symbols ? symData.symbols.length : ''} trading day(s) processed.`;
+window.location.href = `/api/download/${taskId}`;
+} else if (pollData.status === 'failed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+addLog(`Job failed: ${pollData.error}`, 'error');
+}
+
+} catch (err) {
+clearInterval(pollInterval);
+setExtractingState(false);
+addLog(`Polling failed: ${err.message}`, 'error');
+}
+}, 500);
+
+} catch (err) {
+addLog(`Network error starting task: ${err.message}`, 'error');
+setExtractingState(false);
+}
+}
+</script>
+</body>
+</html>
+
+// Update log console
+if (pollData.new_logs && pollData.new_logs.length > 0) {
+pollData.new_logs.forEach(logObj => addLog(logObj.message, logObj.type));
+lastLogIndex += pollData.new_logs.length;
+}
+
+// Update symbol table in real-time
+if (symData.symbols && symData.symbols.length > 0) {
+// Add expiry_label since live data doesn't include it
+symData.symbols.forEach(r => { r.expiry_label = r.expiry; });
+renderSymbolTable(symData.symbols);
+document.getElementById('symbolStatusText').textContent =
+`Showing ${symData.symbols.length} day(s) — updates live during extraction.`;
+}
+
+// Update preview tables in real-time
+if (pollData.preview_summary && pollData.preview_summary.length > 0) {
+renderPreviewSummaryTable(pollData.preview_summary);
+}
+if (pollData.preview_live_5m && pollData.preview_live_5m.length > 0) {
+renderPreviewLive5mTable(pollData.preview_live_5m);
+}
+
+if (pollData.status === 'completed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+addLog('Job finished. Export completed successfully. Starting file download...', 'success');
+document.getElementById('symbolStatusText').textContent =
+`Extraction complete. ${symData.symbols ? symData.symbols.length : ''} trading day(s) processed.`;
+window.location.href = `/api/download/${taskId}`;
+} else if (pollData.status === 'failed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+addLog(`Job failed: ${pollData.error}`, 'error');
+}
+
+} catch (err) {
+clearInterval(pollInterval);
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+addLog(`Polling failed: ${err.message}`, 'error');
+}
+}, 500);
+
+} catch (err) {
+addLog(`Network error starting task: ${err.message}`, 'error');
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+}
+}
+</script>
+</body>
+</html>
+
+btnText.textContent = 'Extract & Download Excel';
+}
+}
+
+// ── Symbol Preview Panel ─────────────────────────────────────────────
+function getFormValues() {
+return {
+username:      document.getElementById('username').value.trim(),
+password:      document.getElementById('password').value.trim(),
+symbol:        document.getElementById('symbol').value.trim().toUpperCase(),
+exchange:      document.getElementById('exchange').value.trim().toUpperCase(),
+n_bars:        parseInt(document.getElementById('n_bars').value) || 5000,
+strike_offset: parseInt(document.getElementById('strike_offset').value) || 100
+};
+}
+
+// ── Live Mode toggle ─────────────────────────────────────────────────
+function onLiveModeToggle(chk) {
+if (chk.checked) {
+// Force 09:28 Only radio
+document.querySelector('input[name="time_filter"][value="0928"]').checked = true;
+// Set bar count to 500 — enough to cover just today's 1-min bars
+document.getElementById('n_bars').value = 500;
+document.getElementById('n_bars').disabled = true;
+} else {
+document.getElementById('n_bars').disabled = false;
+}
+}
+
+function todayIST() {
+return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD
+}
+
+function renderSymbolTable(rows) {
+const wrap  = document.getElementById('symbolTableWrap');
+const today = todayIST();
+
+if (!rows || rows.length === 0) {
+wrap.innerHTML = '<div class="symbol-empty">No 09:28 bars found in the fetched data.</div>';
+return;
+}
+
+// Parse expiry from 6-digit code YYMMDD → Date object for comparison
+function expiryDate(expStr) {
+// expStr e.g. "260709" → year=2026, month=07, day=09
+const yy = parseInt(expStr.slice(0,2)) + 2000;
+const mm = parseInt(expStr.slice(2,4)) - 1; // 0-indexed
+const dd = parseInt(expStr.slice(4,6));
+return new Date(yy, mm, dd);
+}
+
+function isExpired(expStr) {
+const exp  = expiryDate(expStr);
+const now  = new Date();
+now.setHours(0,0,0,0);
+return exp < now;
+}
+
+function tvLink(sym, label, colorClass) {
+// Correct TradingView URL format for NSE option symbols
+const url = `https://www.tradingview.com/chart/?symbol=NSE%3A${encodeURIComponent(sym)}`;
+return `<a class="tv-link ${colorClass}" href="${url}" target="_blank"
+title="Open ${sym} in TradingView">&#x1F4C8; Open Chart</a>`;
+}
+
+function expiredBadge() {
+return `<span style="font-size:11px;color:var(--text-secondary);
+background:rgba(255,255,255,0.04);border:1px solid var(--card-border);
+border-radius:5px;padding:3px 8px;">&#x23F1; Expired</span>`;
+}
+
+let html = `
+<div class="symbol-table-wrap">
+<table class="symbol-table">
+<thead><tr>
+<th>Date</th>
+<th>09:28 Close</th>
+<th>Expiry</th>
+<th>&#x1F7E2; Call Strike</th>
+<th>CALL Symbol</th>
+<th>TV Chart (Call)</th>
+<th>&#x1F534; Put Strike</th>
+<th>PUT Symbol</th>
+<th>TV Chart (Put)</th>
+</tr></thead>
+<tbody>`;
+
+rows.slice().reverse().forEach(r => {
+const isToday  = r.date === today;
+const expired  = isExpired(r.expiry);
+const expLabel = r.expiry_label || r.expiry;
+
+html += `
+<tr class="${isToday ? 'today-row' : ''}">
+<td style="color:${isToday ? 'var(--success)':'var(--text-primary)'};
+font-weight:${isToday ? 600 : 400};">
+${r.date}${isToday ? ' &#x1F7E2;' : ''}
+</td>
+<td style="color:var(--text-primary);font-family:'JetBrains Mono',monospace;">
+${r.close_0928.toLocaleString('en-IN',{minimumFractionDigits:2})}
+</td>
+<td style="color:${expired ? 'var(--text-secondary)':'#a5b4fc'};font-size:11px;">
+${expLabel}${expired ? ' <span style="color:#6b7280;">(expired)</span>' : ''}
+</td>
+<td style="color:#34d399;font-weight:600;">${r.call_strike}</td>
+<td>
+<span class="sym-badge call-badge"
+onclick="copyText('${r.call_sym}',this)"
+title="Click to copy">
+&#x1F4CB; ${r.call_sym}
+</span>
+</td>
+<td>${expired ? expiredBadge() : tvLink(r.call_sym,'Call','')}</td>
+<td style="color:#f87171;font-weight:600;">${r.put_strike}</td>
+<td>
+<span class="sym-badge put-badge"
+onclick="copyText('${r.put_sym}',this)"
+title="Click to copy">
+&#x1F4CB; ${r.put_sym}
+</span>
+</td>
+<td>${expired ? expiredBadge() : tvLink(r.put_sym,'Put','')}</td>
+</tr>`;
+});
+
+html += '</tbody></table></div>';
+wrap.innerHTML = html;
+}
+
+function copyText(text, el) {
+navigator.clipboard.writeText(text).then(() => {
+const orig = el.innerHTML;
+el.innerHTML = el.innerHTML.replace('&#x1F4CB;', '&#x2705;');
+el.style.borderColor = '#10b981';
+setTimeout(() => { el.innerHTML = orig; el.style.borderColor = ''; }, 1500);
+});
+}
+
+async function previewSymbols() {
+const btn    = document.getElementById('previewBtn');
+const spin   = document.getElementById('symbolSpinner');
+const txt    = document.getElementById('previewBtnText');
+const status = document.getElementById('symbolStatusText');
+const liveMode = document.getElementById('live_today_only').checked;
+
+btn.disabled = true;
+spin.style.display = 'inline-block';
+txt.textContent = 'Computing...';
+status.textContent = liveMode
+? 'Live Mode: fetching today\'s 09:28 bar only...'
+: 'Fetching 09:28 bars and computing option symbols...';
+
+try {
+const vals = getFormValues();
+if (liveMode) vals.n_bars = 500; // override for today-only
+const resp = await fetch('/api/preview_symbols', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(vals)
+});
+const data = await resp.json();
+
+if (!resp.ok || data.error) {
+status.textContent = 'Error: ' + (data.error || 'Unknown error');
+document.getElementById('symbolTableWrap').innerHTML =
+`<div class="symbol-empty" style="color:var(--error);">&#x26A0; ${data.error || 'Failed to fetch symbols'}</div>`;
+} else {
+const shown = liveMode ? data.symbols.slice(-1) : data.symbols; // live = only last (today)
+renderSymbolTable(shown);
+const mode = liveMode ? '&#x26A1; Live (today only)' : 'Historical';
+status.textContent = `${mode} — ${shown.length} day(s) shown. Click badge to copy, or open active contracts in TradingView.`;
+}
+} catch (err) {
+status.textContent = 'Network error: ' + err.message;
+} finally {
+btn.disabled = false;
+spin.style.display = 'none';
+txt.textContent = '&#x1F50D; Preview Symbols';
+}
+}
+
+// ── Extraction ───────────────────────────────────────────────────────
+async function startExtraction() {
+const username        = document.getElementById('username').value.trim();
+const password        = document.getElementById('password').value.trim();
+const symbol          = document.getElementById('symbol').value.trim();
+const exchange        = document.getElementById('exchange').value.trim();
+const interval        = document.getElementById('interval').value;
+const liveMode        = document.getElementById('live_today_only').checked;
+const n_bars          = liveMode ? 500 : parseInt(document.getElementById('n_bars').value);
+const filename        = document.getElementById('filename').value.trim();
+const time_filter     = liveMode ? '0928'
+: document.querySelector('input[name="time_filter"]:checked').value;
+const strike_offset   = parseInt(document.getElementById('strike_offset').value) || 100;
+const google_sheet_url = document.getElementById('google_sheet_url').value.trim();
+
+localStorage.setItem('google_sheet_url', google_sheet_url);
+
+if (!symbol || !exchange || !filename) {
+addLog('Validation failed. Please verify Symbol, Exchange, and Filename.', 'error');
+return;
+}
+
+setExtractingState(true);
+addLog(`Initiating extraction job for ${symbol}:${exchange}...`, 'info');
+
+// Reset symbol panel
+document.getElementById('symbolStatusText').textContent = 'Computing symbols during extraction...';
+document.getElementById('symbolTableWrap').innerHTML =
+'<div class="symbol-empty">&#x23F3; Symbols will appear here as each trading day is processed...</div>';
+
+// Show live preview sync badge & clear preview bodies
+document.getElementById('previewLiveBadge').style.display = 'inline-flex';
+document.getElementById('previewSummaryBody').innerHTML = 
+'<tr><td colspan="12" class="symbol-empty">🔄 Syncing strategy summary data from TradingView...</td></tr>';
+document.getElementById('previewCandlesBody').innerHTML = 
+'<tr><td colspan="9" class="symbol-empty">🔄 Syncing today\'s 5m candles...</td></tr>';
+
+try {
+const response = await fetch('/api/extract', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ username, password, symbol, exchange, interval,
+n_bars, filename, time_filter, strike_offset, google_sheet_url,
+live_today_only: liveMode })
+});
+
+const data = await response.json();
+if (response.status !== 200 || !data.task_id) {
+addLog(data.error || 'Failed to start extraction task', 'error');
+setExtractingState(false);

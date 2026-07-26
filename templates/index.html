@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradingView Data Extractor Pro</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+--bg-color: #0b0f19;
+--card-bg: #151c2c;
+--card-border: #243049;
+--text-primary: #f8fafc;
+--text-secondary: #94a3b8;
+--accent: #4f46e5;
+--accent-hover: #6366f1;
+--accent-glow: rgba(79, 70, 229, 0.4);
+--success: #10b981;
+--error: #ef4444;
+--warning: #f59e0b;
+--input-bg: #0b0f19;
+--terminal-bg: #05070f;
+}
+
+* {
+box-sizing: border-box;
+margin: 0;
+padding: 0;
+}
+
+body {
+font-family: 'Inter', sans-serif;
+background-color: var(--bg-color);
+color: var(--text-primary);
+min-height: 100vh;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: flex-start;
+padding: 40px 20px;
+overflow-x: hidden;
+}
+
+.container {
+width: 100%;
+max-width: 1100px;
+display: flex;
+flex-direction: column;
+gap: 24px;
+}
+
+/* Header Styling */
+header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid var(--card-border);
+padding-bottom: 20px;
+}
+
+.logo-section h1 {
+font-size: 24px;
+font-weight: 700;
+letter-spacing: -0.5px;
+background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+margin-bottom: 4px;
+}
+
+.logo-section p {
+font-size: 14px;
+color: var(--text-secondary);
+}
+
+.status-badge {
+display: flex;
+align-items: center;
+gap: 8px;
+background-color: rgba(16, 185, 129, 0.1);
+color: var(--success);
+padding: 6px 12px;
+border-radius: 9999px;
+font-size: 12px;
+font-weight: 600;
+border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-dot {
+width: 8px;
+height: 8px;
+background-color: var(--success);
+border-radius: 50%;
+box-shadow: 0 0 8px var(--success);
+animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Main Workspace Grid */
+.workspace {
+display: grid;
+grid-template-columns: 1fr 1.2fr;
+gap: 24px;
+}
+
+@media (max-width: 900px) {
+.workspace {
+grid-template-columns: 1fr;
+}
+}
+
+.card {
+background-color: var(--card-bg);
+border: 1px solid var(--card-border);
+border-radius: 16px;
+padding: 24px;
+box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+display: flex;
+flex-direction: column;
+gap: 20px;
+}
+
+.card-title {
+font-size: 16px;
+font-weight: 600;
+color: var(--text-primary);
+border-left: 3px solid var(--accent);
+padding-left: 10px;
+margin-bottom: 5px;
+}
+
+.form-section {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+.form-group {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.form-row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 16px;
+}
+
+label {
+font-size: 12px;
+font-weight: 600;
+color: var(--text-secondary);
+text-transform: uppercase;
+letter-spacing: 0.5px;
+}
+
+input, select {
+background-color: var(--input-bg);
+border: 1px solid var(--card-border);
+color: var(--text-primary);
+padding: 12px 16px;
+border-radius: 8px;
+font-family: inherit;
+font-size: 14px;
+transition: all 0.2s ease;
+outline: none;
+}
+
+input:focus, select:focus {
+border-color: var(--accent);
+box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Button design with animations */
+.btn-extract {
+background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+color: white;
+border: none;
+padding: 14px;
+border-radius: 8px;
+font-size: 15px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.btn-extract:hover {
+transform: translateY(-1px);
+box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+
+.btn-extract:active {
+transform: translateY(1px);
+}
+
+.btn-extract:disabled {
+background: var(--card-border);
+color: var(--text-secondary);
+cursor: not-allowed;
+transform: none;
+box-shadow: none;
+}
+
+/* Console Panel */
+.console-card {
+display: flex;
+flex-direction: column;
+height: 580px;
+}
+
+.console-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.clear-btn {
+background: none;
+border: none;
+color: var(--text-secondary);
+font-size: 12px;
+cursor: pointer;
+transition: color 0.2s ease;
+}
+
+.clear-btn:hover {
+color: var(--text-primary);
+}
+
+.terminal {
+background-color: var(--terminal-bg);
+border: 1px solid var(--card-border);
+border-radius: 8px;
+flex-grow: 1;
+padding: 16px;
+overflow-y: auto;
+font-family: 'JetBrains Mono', monospace;
+font-size: 13px;
+line-height: 1.6;
+display: flex;
+flex-direction: column;
+gap: 8px;
+color: var(--text-secondary);
+}
+
+.log-entry {
+display: flex;
+gap: 8px;
+animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(4px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.log-time {
+color: #565f89;
+flex-shrink: 0;
+}
+
+.log-text {
+word-break: break-all;
+}
+
+.log-info .log-text { color: var(--text-secondary); }
+.log-success .log-text { color: var(--success); }
+.log-error .log-text { color: var(--error); }
+.log-warn .log-text { color: var(--warning); }
+.log-table {
+background-color: rgba(255, 255, 255, 0.03);
+border-radius: 4px;
+padding: 8px;
+margin-top: 4px;
+font-size: 11px;
+white-space: pre;
+overflow-x: auto;
+color: #7982a9;
+border-left: 2px solid var(--accent);
+}
+
+/* Spinner */
+.spinner {
+width: 18px;
+height: 18px;
+border: 2px solid rgba(255, 255, 255, 0.3);
+border-radius: 50%;
+border-top-color: white;
+animation: spin 0.8s linear infinite;
+display: none;
+}
+
+@keyframes spin {
+to { transform: rotate(360deg); }
+}
+
+.extracting .spinner {
+display: inline-block;
+}
+
+/* ── Symbol Preview Panel ── */
+.symbol-panel {
+background-color: var(--card-bg);
+border: 1px solid var(--card-border);
+border-radius: 16px;
+padding: 24px;
+box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+.symbol-panel-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 12px;
+}
+
+.btn-preview {
+background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+color: white;
+border: none;
+padding: 10px 20px;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+display: flex;
+align-items: center;
+gap: 8px;
+box-shadow: 0 4px 12px rgba(14,165,233,0.25);
+}
+
+.btn-preview:hover {
+transform: translateY(-1px);
+box-shadow: 0 6px 20px rgba(14,165,233,0.4);
+}
+
+.btn-preview:disabled {
+background: var(--card-border);
+color: var(--text-secondary);
+cursor: not-allowed;
+transform: none;
+box-shadow: none;
+}
+
+.symbol-table-wrap {
+overflow-x: auto;
+border-radius: 10px;
+border: 1px solid var(--card-border);
+}
+
+.symbol-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+}
+
+.symbol-table th {
+background-color: rgba(79,70,229,0.12);
+color: #a5b4fc;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.5px;
+font-size: 11px;
+padding: 10px 14px;
+text-align: left;
+border-bottom: 1px solid var(--card-border);
+white-space: nowrap;
+}
+
+.symbol-table td {
+padding: 10px 14px;
+border-bottom: 1px solid rgba(36,48,73,0.6);
+color: var(--text-secondary);
+white-space: nowrap;
+}
+
+.symbol-table tr:last-child td { border-bottom: none; }
+
+.symbol-table tr:hover td { background-color: rgba(79,70,229,0.05); }
+
+.symbol-table tr.today-row td { background-color: rgba(16,185,129,0.06); }
+
+.sym-badge {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+background-color: rgba(99,102,241,0.12);
+border: 1px solid rgba(99,102,241,0.25);
+border-radius: 6px;
+padding: 3px 8px;
+font-family: 'JetBrains Mono', monospace;
+font-size: 12px;
+color: #c084fc;
+cursor: pointer;
+transition: all 0.15s ease;
+user-select: all;
+}
+
+.sym-badge:hover { border-color: #818cf8; background-color: rgba(99,102,241,0.25); }
+
+.call-badge {
+background-color: rgba(16,185,129,0.1);
+border-color: rgba(16,185,129,0.25);
+color: #34d399;
+}
+.call-badge:hover { border-color: #10b981; background-color: rgba(16,185,129,0.2); }
+
+.put-badge {
+background-color: rgba(239,68,68,0.1);
+border-color: rgba(239,68,68,0.25);
+color: #f87171;
+}
+.put-badge:hover { border-color: #ef4444; background-color: rgba(239,68,68,0.2); }
+
+.tv-link {
+display: inline-flex;
+align-items: center;
+gap: 4px;
+font-size: 11px;
+color: var(--text-secondary);
+text-decoration: none;
+background: rgba(255,255,255,0.04);
+border: 1px solid var(--card-border);
+border-radius: 5px;
+padding: 3px 8px;
+transition: all 0.15s ease;
+}
+
+.tv-link:hover { color: #818cf8; border-color: #818cf8; background: rgba(99,102,241,0.1); }
+
+.symbol-empty {
+text-align: center;
+color: var(--text-secondary);
+padding: 32px;
+font-size: 13px;
+}
+
+.symbol-spinner {
+display: none;
+width: 14px;
+height: 14px;
+border: 2px solid rgba(255,255,255,0.3);
+border-radius: 50%;
+border-top-color: white;
+animation: spin 0.8s linear infinite;
+}
+
+/* ── Real-Time Preview Dashboard Panel ── */
+.preview-panel {
+background-color: var(--card-bg);
+border: 1px solid var(--card-border);
+border-radius: 16px;
+padding: 24px;
+box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+display: flex;
+flex-direction: column;
+gap: 16px;
+margin-top: 10px;
+}
+
+.preview-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+flex-wrap: wrap;
+gap: 12px;
+border-bottom: 1px solid var(--card-border);
+padding-bottom: 14px;
+}
+
+.tab-buttons {
+display: flex;
+gap: 8px;
+background-color: var(--bg-color);
+padding: 4px;
+border-radius: 8px;
+border: 1px solid var(--card-border);
+}
+
+.tab-btn {
+background: none;
+border: none;
+color: var(--text-secondary);
+padding: 8px 16px;
+border-radius: 6px;
+font-size: 13px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+background-color: var(--accent);
+color: var(--text-primary);
+box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+}
+
+.tab-btn:hover:not(.active) {
+color: var(--text-primary);
+background-color: rgba(255, 255, 255, 0.03);
+}
+
+.preview-tab-content {
+display: none;
+}
+
+.preview-tab-content.active {
+display: block;
+}
+
+.preview-table-wrap {
+max-height: 400px;
+overflow-y: auto;
+overflow-x: auto;
+border-radius: 10px;
+border: 1px solid var(--card-border);
+}
+
+/* Styling matching openpyxl premium themes */
+.preview-table {
+width: 100%;
+border-collapse: collapse;
+font-size: 13px;
+text-align: center;
+}
+
+.preview-table th {
+background-color: #1f4e78; /* Slate Blue matching excel */
+color: #ffffff;
+font-weight: 600;
+font-size: 12px;
+padding: 12px 14px;
+border: 1px solid var(--card-border);
+white-space: nowrap;
+position: sticky;
+top: 0;
+z-index: 10;
+}
+
+.preview-table td {
+padding: 10px 14px;
+border: 1px solid rgba(36,48,73,0.6);
+color: var(--text-secondary);
+white-space: nowrap;
+background-color: var(--card-bg);
+}
+
+.preview-table tr:hover td {
+background-color: rgba(79,70,229,0.05);
+}
+
+.text-up {
+color: #10b981 !important;
+font-weight: 600;
+}
+
+.text-down {
+color: #ef4444 !important;
+font-weight: 600;
+}
+
+/* Footer */
+footer {
+margin-top: auto;
+padding: 40px 0 10px;
+font-size: 12px;
+color: var(--text-secondary);
+text-align: center;
+}
+.nav-links {
+display: flex;
+gap: 16px;
+margin-left: 20px;
+}
+
+.nav-btn {
+background-color: transparent;
+color: var(--text-secondary);
+border: 1px solid var(--card-border);
+padding: 8px 16px;
+border-radius: 8px;
+font-size: 14px;
+font-weight: 600;
+text-decoration: none;
+transition: all 0.2s ease;
+cursor: pointer;
+}
+
+.nav-btn:hover {
+color: var(--text-primary);
+border-color: var(--text-secondary);
+}
+
+.nav-btn.active {
+background-color: var(--accent);
+color: var(--text-primary);
+border-color: var(--accent);
+box-shadow: 0 0 12px var(--accent-glow);
+}
+</style>
+</head>
+<body>
+<div class="container">
+<!-- Header -->
+<header>
+<div class="logo-section">
+<h1>TradingView Data Extractor Pro</h1>
+<p>Standalone Localhost Mode</p>
+</div>
+<div class="nav-links">
+<a href="/" class="nav-btn active">Data Extractor</a>
+<a href="/analyzer" class="nav-btn">Strategy Analyzer</a>
+<a href="/journal" class="nav-btn">Trade Journal</a>
+<a href="/settings" class="nav-btn">Settings</a>
+</div>
+<div class="status-badge">
+<div class="status-dot"></div>
+Connected to local host
+</div>
+</header>
+
+<!-- Main Workspace -->
+<div class="workspace">
+<!-- Left Card: Form Settings -->
+<div class="card">
+<div class="card-title">Configuration Settings</div>
+
+<div class="form-section">
+<!-- Credentials (Optional) -->
+<div class="form-group">
+<label>TradingView Username</label>
+<input type="text" id="username" value="brokerworkflowhub" placeholder="Guest Mode if empty">
+</div>
+<div class="form-group">
+<label>TradingView Password</label>
+<input type="password" id="password" value="Nithik@20252" placeholder="Guest Mode if empty">
+</div>
+
+<div class="form-row">
+<!-- Symbol & Exchange -->
+<div class="form-group">
+<label>Symbol</label>
+<input type="text" id="symbol" value="NIFTY" required>
+</div>
+<div class="form-group">
+<label>Exchange</label>
+<input type="text" id="exchange" value="NSE" required>
+</div>
+</div>
+
+<div class="form-row">
+<!-- Interval & Bar Count -->
+<div class="form-group">
+<label>Interval</label>
+<select id="interval">
+<option value="1 Minute" selected>1 Minute</option>
+<option value="3 Minutes">3 Minutes</option>
+<option value="5 Minutes">5 Minutes</option>
+<option value="15 Minutes">15 Minutes</option>
+<option value="30 Minutes">30 Minutes</option>
+<option value="45 Minutes">45 Minutes</option>
+<option value="1 Hour">1 Hour</option>
+<option value="2 Hours">2 Hours</option>
+<option value="3 Hours">3 Hours</option>
+<option value="4 Hours">4 Hours</option>
+<option value="Daily">Daily</option>
+<option value="Weekly">Weekly</option>
+<option value="Monthly">Monthly</option>
+</select>
+</div>
+<div class="form-group">
+<label>Number of Bars</label>
+<input type="number" id="n_bars" value="1000" min="1" step="100">
+</div>
+</div>
+
+<!-- Time Filter (09:28 Only) -->
+<div class="form-group">
+<label>Time Filter</label>
+<div style="display: flex; gap: 20px; margin-top: 6px;">
+<label style="display: flex; align-items: center; gap: 8px; text-transform: none; font-weight: 500; font-size: 13px; color: var(--text-primary); cursor: pointer;">
+<input type="radio" name="time_filter" value="all" checked style="width: auto; height: auto; margin: 0; accent-color: var(--accent); cursor: pointer;">
+All Timestamps
+</label>
+<label style="display: flex; align-items: center; gap: 8px; text-transform: none; font-weight: 500; font-size: 13px; color: var(--text-primary); cursor: pointer;">
+<input type="radio" name="time_filter" value="0928" style="width: auto; height: auto; margin: 0; accent-color: var(--accent); cursor: pointer;">
+09:28 Only
+</label>
+</div>
+</div>
+
+<!-- Today Only (Live Mode) -->
+<div class="form-group" style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:12px 14px;">
+<label style="color:#34d399;font-size:12px;">&#x26A1; Live Mode</label>
+<label id="liveToggleLabel" style="display:flex;align-items:center;gap:10px;margin-top:8px;cursor:pointer;">
+<input type="checkbox" id="live_today_only"
+style="width:18px;height:18px;accent-color:#10b981;cursor:pointer;"
+onchange="onLiveModeToggle(this)">
+<span style="font-size:13px;font-weight:500;color:var(--text-primary);">
+Today Only &mdash; fetch <strong>only today&rsquo;s</strong> 09:28 bar &amp; compute live Call/Put symbols
+</span>
+</label>
+<p style="font-size:11px;color:var(--text-secondary);margin-top:6px;margin-left:28px;">
+Overrides bar count to 500 (just enough for today). Best for live intraday use after 09:28 IST.
+</p>
+</div>
+
+<!-- Strike Offset -->
+<div class="form-group">
+<label>Strike Offset (for Call &amp; Put Options)</label>
+<input type="number" id="strike_offset" value="100" min="1" step="50" placeholder="e.g. 100">
+</div>
+
+<!-- Output File Name -->
+<div class="form-group">
+<label>Output Excel Filename</label>
+<input type="text" id="filename" value="nifty_data.xlsx" placeholder="e.g. nifty_data.xlsx">
+</div>
+
+<!-- Google Sheets Live Sync -->
+<div class="form-group" style="border-top: 1px solid var(--card-border); padding-top: 14px; margin-top: 5px;">
+<label style="color: #a5b4fc;">Google Sheets Webhook URL (Optional)</label>
+<input type="text" id="google_sheet_url" placeholder="https://script.google.com/macros/s/.../exec">
+<p style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+If configured, data automatically syncs live to your Google Sheet!
+</p>
+</div>
+
+<!-- Trigger Button -->
+<button class="btn-extract" id="extractBtn" onclick="startExtraction()">
+<div class="spinner"></div>
+<span id="btnText">Extract & Download Excel</span>
+</button>
+</div>
+</div>
+
+<!-- Right Card: Console Logging -->
+<div class="card console-card">
+<div class="console-header">
+<div class="card-title">Live Execution Logs</div>
+<button class="clear-btn" onclick="clearConsole()">Clear Logs</button>
+</div>
+
+<div class="terminal" id="terminal">
+<!-- Logs inserted dynamically -->
+</div>
+</div>
+</div>
+
+<!-- Live Data & Strategy Preview Panel -->
+<div class="preview-panel">
+<div class="preview-header">
+<div style="display:flex;align-items:center;gap:12px;">
+<div class="card-title" style="margin-bottom:0;">📊 Real-Time Extraction Preview</div>
+<span id="previewLiveBadge" class="status-badge" style="display:none;background-color:rgba(16,185,129,0.1);color:var(--success);padding:3px 8px;font-size:11px;border-radius:4px;">
+<div class="status-dot" style="width:6px;height:6px;box-shadow:0 0 6px var(--success);"></div> Live Sync Active
+</span>
+</div>
+<div class="tab-buttons">
+<button class="tab-btn active" onclick="switchPreviewTab('summary', event)">Strategy Summary (15m HA)</button>
+<button class="tab-btn" onclick="switchPreviewTab('candles', event)">Today's 5m Live Candles</button>
+</div>
+</div>
+
+<!-- Tab 1: Strategy Summary -->
+<div id="tabSummary" class="preview-tab-content active">
+<div class="preview-table-wrap">
+<table class="preview-table">
+<thead>
+<tr>
+<th>Date</th>
+<th>09:28 Close</th>
+<th>Call Strike</th>
+<th>Put Strike</th>
+<th>Call Prev 15:15 Close (15m HA)</th>
+<th>Call 09:15 Close (15m HA)</th>
+<th>Call 09:30 Close (15m HA)</th>
+<th>Call 09:45 Open (15m HA)</th>
+<th>Put Prev 15:15 Close (15m HA)</th>
+<th>Put 09:15 Close (15m HA)</th>
+<th>Put 09:30 Close (15m HA)</th>
+<th>Put 09:45 Open (15m HA)</th>
+</tr>
+</thead>
+<tbody id="previewSummaryBody">
+<tr>
+<td colspan="12" class="symbol-empty">No extraction data loaded. Start an extraction job to see live preview.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- Tab 2: 5m Live Candles -->
+<div id="tabCandles" class="preview-tab-content">
+<div class="preview-table-wrap" id="previewCandlesWrap">
+<table class="preview-table">
+<thead>
+<tr>
+<th>Time (IST)</th>
+<th>Call Open</th>
+<th>Call High</th>
+<th>Call Low</th>
+<th>Call Close</th>
+<th>Put Open</th>
+<th>Put High</th>
+<th>Put Low</th>
+<th>Put Close</th>
+</tr>
+</thead>
+<tbody id="previewCandlesBody">
+<tr>
+<td colspan="9" class="symbol-empty">No live candles loaded yet.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+<footer>
+TradingView Data Extractor Standalone Tool &copy; 2026. Custom Built.
+</footer>
+</div>
+
+<!-- Dynamic Options Symbol Preview Panel -->
+<div style="width:100%;max-width:1100px;margin:0 auto 40px;">
+<div class="symbol-panel">
+<div class="symbol-panel-header">
+<div class="card-title" style="margin-bottom:0;">&#x1F4CA; Dynamic Options Symbol Preview</div>
+<div style="display:flex;align-items:center;gap:10px;">
+<span id="symbolStatusText" style="font-size:12px;color:var(--text-secondary);">Click &ldquo;Preview Symbols&rdquo; to compute call &amp; put symbols from today&rsquo;s 09:28 close price</span>
+<button class="btn-preview" id="previewBtn" onclick="previewSymbols()">
+<div class="symbol-spinner" id="symbolSpinner"></div>
+<span id="previewBtnText">&#x1F50D; Preview Symbols</span>
+</button>
+</div>
+</div>
+
+<div id="symbolTableWrap">
+<div class="symbol-empty" id="symbolEmpty">
+&#x23F3; No symbols loaded yet. Click &ldquo;Preview Symbols&rdquo; or run an extraction to see dynamically computed Call &amp; Put option contracts per trading day.
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const terminal = document.getElementById('terminal');
+const extractBtn = document.getElementById('extractBtn');
+const btnText = document.getElementById('btnText');
+let pollInterval = null;
+
+// ── Preview tab switcher ──────────────────────────────────────────────
+function switchPreviewTab(tab, event) {
+document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+document.querySelectorAll('.preview-tab-content').forEach(content => content.classList.remove('active'));
+
+event.target.classList.add('active');
+if (tab === 'summary') {
+document.getElementById('tabSummary').classList.add('active');
+} else if (tab === 'candles') {
+document.getElementById('tabCandles').classList.add('active');
+}
+}
+
+function renderPreviewSummaryTable(rows) {
+const body = document.getElementById('previewSummaryBody');
+if (!rows || rows.length === 0) {
+body.innerHTML = `<tr><td colspan="12" class="symbol-empty">No strategy summary rows processed yet.</td></tr>`;
+return;
+}
+
+let html = '';
+rows.forEach(r => {
+html += `
+<tr>
+<td style="font-weight:600;color:var(--text-primary);">${r['Date']}</td>
+<td style="font-family:'JetBrains Mono',monospace;color:var(--text-primary);">${r['09:28 Close'] ? parseFloat(r['09:28 Close']).toFixed(2) : ''}</td>
+<td class="text-up" style="font-weight:600;">${r['Call Strike']}</td>
+<td class="text-down" style="font-weight:600;">${r['Put Strike']}</td>
+<td>${r['Call Prev 15:15 Close (15m HA)'] !== undefined && r['Call Prev 15:15 Close (15m HA)'] !== "" ? parseFloat(r['Call Prev 15:15 Close (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Call 09:15 Close (15m HA)'] !== undefined && r['Call 09:15 Close (15m HA)'] !== "" ? parseFloat(r['Call 09:15 Close (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Call 09:30 Close (15m HA)'] !== undefined && r['Call 09:30 Close (15m HA)'] !== "" ? parseFloat(r['Call 09:30 Close (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Call 09:45 Open (15m HA)'] !== undefined && r['Call 09:45 Open (15m HA)'] !== "" ? parseFloat(r['Call 09:45 Open (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Put Prev 15:15 Close (15m HA)'] !== undefined && r['Put Prev 15:15 Close (15m HA)'] !== "" ? parseFloat(r['Put Prev 15:15 Close (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Put 09:15 Close (15m HA)'] !== undefined && r['Put 09:15 Close (15m HA)'] !== "" ? parseFloat(r['Put 09:15 Close (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Put 09:30 Close (15m HA)'] !== undefined && r['Put 09:30 Close (15m HA)'] !== "" ? parseFloat(r['Put 09:30 Close (15m HA)']).toFixed(2) : ''}</td>
+<td>${r['Put 09:45 Open (15m HA)'] !== undefined && r['Put 09:45 Open (15m HA)'] !== "" ? parseFloat(r['Put 09:45 Open (15m HA)']).toFixed(2) : ''}</td>
+</tr>`;
+});
+body.innerHTML = html;
+}
+
+function renderPreviewLive5mTable(rows) {
+const body = document.getElementById('previewCandlesBody');
+const wrap = document.getElementById('previewCandlesWrap');
+if (!rows || rows.length === 0) {
+body.innerHTML = `<tr><td colspan="9" class="symbol-empty">No live 5m candles processed yet.</td></tr>`;
+return;
+}
+
+// Check if we are currently scrolled close to bottom
+const isAtBottom = wrap.scrollHeight - wrap.clientHeight <= wrap.scrollTop + 20;
+
+let html = '';
+rows.forEach(r => {
+const cOpen = (r['Call Open'] !== undefined && r['Call Open'] !== "") ? parseFloat(r['Call Open']) : null;
+const cClose = (r['Call Close'] !== undefined && r['Call Close'] !== "") ? parseFloat(r['Call Close']) : null;
+const pOpen = (r['Put Open'] !== undefined && r['Put Open'] !== "") ? parseFloat(r['Put Open']) : null;
+const pClose = (r['Put Close'] !== undefined && r['Put Close'] !== "") ? parseFloat(r['Put Close']) : null;
+
+const cClass = (cClose !== null && cOpen !== null) ? (cClose >= cOpen ? 'text-up' : 'text-down') : '';
+const pClass = (pClose !== null && pOpen !== null) ? (pClose >= pOpen ? 'text-up' : 'text-down') : '';
+
+html += `
+<tr>
+<td style="font-weight:600;color:var(--text-primary);">${r['Time (IST)']}</td>
+<td>${cOpen !== null ? cOpen.toFixed(2) : ''}</td>
+<td>${r['Call High'] !== undefined && r['Call High'] !== "" ? parseFloat(r['Call High']).toFixed(2) : ''}</td>
+<td>${r['Call Low'] !== undefined && r['Call Low'] !== "" ? parseFloat(r['Call Low']).toFixed(2) : ''}</td>
+<td class="${cClass}">${cClose !== null ? cClose.toFixed(2) : ''}</td>
+<td>${pOpen !== null ? pOpen.toFixed(2) : ''}</td>
+<td>${r['Put High'] !== undefined && r['Put High'] !== "" ? parseFloat(r['Put High']).toFixed(2) : ''}</td>
+<td>${r['Put Low'] !== undefined && r['Put Low'] !== "" ? parseFloat(r['Put Low']).toFixed(2) : ''}</td>
+<td class="${pClass}">${pClose !== null ? pClose.toFixed(2) : ''}</td>
+</tr>`;
+});
+body.innerHTML = html;
+
+if (isAtBottom) {
+wrap.scrollTop = wrap.scrollHeight;
+}
+}
+
+// ── Logging helpers ──────────────────────────────────────────────────
+function addLog(message, type = 'info') {
+const time = new Date().toLocaleTimeString();
+const entry = document.createElement('div');
+entry.className = `log-entry log-${type}`;
+if (message.startsWith('PREVIEW:')) {
+const tableContainer = document.createElement('div');
+tableContainer.className = 'log-table';
+tableContainer.textContent = message.replace('PREVIEW:', '');
+entry.appendChild(tableContainer);
+} else {
+entry.innerHTML = `
+<span class="log-time">[${time}]</span>
+<span class="log-text">${escapeHtml(message)}</span>
+`;
+}
+terminal.appendChild(entry);
+terminal.scrollTop = terminal.scrollHeight;
+}
+
+function escapeHtml(unsafe) {
+return unsafe
+.replace(/&/g, "&amp;")
+.replace(/</g, "&lt;")
+.replace(/>/g, "&gt;")
+.replace(/"/g, "&quot;")
+.replace(/'/g, "&#039;");
+}
+
+function clearConsole() {
+terminal.innerHTML = '';
+addLog('Console cleared. System ready.');
+}
+
+document.getElementById('google_sheet_url').value =
+localStorage.getItem('google_sheet_url') ||
+'https://script.google.com/macros/s/AKfycbzeINdkKQbkx80cqa1n3e4r60aH9A6Ilmf0AQ93QMmLi9E6wNmt9qTakY85LpCqjZH5cw/exec';
+
+addLog('System initialized. Awaiting extraction parameters...');
+
+function setExtractingState(isExtracting) {
+if (isExtracting) {
+extractBtn.disabled = true;
+extractBtn.classList.add('extracting');
+btnText.textContent = 'Extracting...';
+} else {
+extractBtn.disabled = false;
+extractBtn.classList.remove('extracting');
+btnText.textContent = 'Extract & Download Excel';
+}
+}
+
+// ── Symbol Preview Panel ─────────────────────────────────────────────
+function getFormValues() {
+return {
+username:      document.getElementById('username').value.trim(),
+password:      document.getElementById('password').value.trim(),
+symbol:        document.getElementById('symbol').value.trim().toUpperCase(),
+exchange:      document.getElementById('exchange').value.trim().toUpperCase(),
+n_bars:        parseInt(document.getElementById('n_bars').value) || 5000,
+strike_offset: parseInt(document.getElementById('strike_offset').value) || 100
+};
+}
+
+// ── Live Mode toggle ─────────────────────────────────────────────────
+function onLiveModeToggle(chk) {
+if (chk.checked) {
+// Force 09:28 Only radio
+document.querySelector('input[name="time_filter"][value="0928"]').checked = true;
+// Set bar count to 500 — enough to cover just today's 1-min bars
+document.getElementById('n_bars').value = 500;
+document.getElementById('n_bars').disabled = true;
+} else {
+document.getElementById('n_bars').disabled = false;
+}
+}
+
+function todayIST() {
+return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD
+}
+
+function renderSymbolTable(rows) {
+const wrap  = document.getElementById('symbolTableWrap');
+const today = todayIST();
+
+if (!rows || rows.length === 0) {
+wrap.innerHTML = '<div class="symbol-empty">No 09:28 bars found in the fetched data.</div>';
+return;
+}
+
+// Parse expiry from 6-digit code YYMMDD → Date object for comparison
+function expiryDate(expStr) {
+// expStr e.g. "260709" → year=2026, month=07, day=09
+const yy = parseInt(expStr.slice(0,2)) + 2000;
+const mm = parseInt(expStr.slice(2,4)) - 1; // 0-indexed
+const dd = parseInt(expStr.slice(4,6));
+return new Date(yy, mm, dd);
+}
+
+function isExpired(expStr) {
+const exp  = expiryDate(expStr);
+const now  = new Date();
+now.setHours(0,0,0,0);
+return exp < now;
+}
+
+function tvLink(sym, label, colorClass) {
+// Correct TradingView URL format for NSE option symbols
+const url = `https://www.tradingview.com/chart/?symbol=NSE%3A${encodeURIComponent(sym)}`;
+return `<a class="tv-link ${colorClass}" href="${url}" target="_blank"
+title="Open ${sym} in TradingView">&#x1F4C8; Open Chart</a>`;
+}
+
+function expiredBadge() {
+return `<span style="font-size:11px;color:var(--text-secondary);
+background:rgba(255,255,255,0.04);border:1px solid var(--card-border);
+border-radius:5px;padding:3px 8px;">&#x23F1; Expired</span>`;
+}
+
+let html = `
+<div class="symbol-table-wrap">
+<table class="symbol-table">
+<thead><tr>
+<th>Date</th>
+<th>09:28 Close</th>
+<th>Expiry</th>
+<th>&#x1F7E2; Call Strike</th>
+<th>CALL Symbol</th>
+<th>TV Chart (Call)</th>
+<th>&#x1F534; Put Strike</th>
+<th>PUT Symbol</th>
+<th>TV Chart (Put)</th>
+</tr></thead>
+<tbody>`;
+
+rows.slice().reverse().forEach(r => {
+const isToday  = r.date === today;
+const expired  = isExpired(r.expiry);
+const expLabel = r.expiry_label || r.expiry;
+
+html += `
+<tr class="${isToday ? 'today-row' : ''}">
+<td style="color:${isToday ? 'var(--success)':'var(--text-primary)'};
+font-weight:${isToday ? 600 : 400};">
+${r.date}${isToday ? ' &#x1F7E2;' : ''}
+</td>
+<td style="color:var(--text-primary);font-family:'JetBrains Mono',monospace;">
+${r.close_0928.toLocaleString('en-IN',{minimumFractionDigits:2})}
+</td>
+<td style="color:${expired ? 'var(--text-secondary)':'#a5b4fc'};font-size:11px;">
+${expLabel}${expired ? ' <span style="color:#6b7280;">(expired)</span>' : ''}
+</td>
+<td style="color:#34d399;font-weight:600;">${r.call_strike}</td>
+<td>
+<span class="sym-badge call-badge"
+onclick="copyText('${r.call_sym}',this)"
+title="Click to copy">
+&#x1F4CB; ${r.call_sym}
+</span>
+</td>
+<td>${expired ? expiredBadge() : tvLink(r.call_sym,'Call','')}</td>
+<td style="color:#f87171;font-weight:600;">${r.put_strike}</td>
+<td>
+<span class="sym-badge put-badge"
+onclick="copyText('${r.put_sym}',this)"
+title="Click to copy">
+&#x1F4CB; ${r.put_sym}
+</span>
+</td>
+<td>${expired ? expiredBadge() : tvLink(r.put_sym,'Put','')}</td>
+</tr>`;
+});
+
+html += '</tbody></table></div>';
+wrap.innerHTML = html;
+}
+
+function copyText(text, el) {
+navigator.clipboard.writeText(text).then(() => {
+const orig = el.innerHTML;
+el.innerHTML = el.innerHTML.replace('&#x1F4CB;', '&#x2705;');
+el.style.borderColor = '#10b981';
+setTimeout(() => { el.innerHTML = orig; el.style.borderColor = ''; }, 1500);
+});
+}
+
+async function previewSymbols() {
+const btn    = document.getElementById('previewBtn');
+const spin   = document.getElementById('symbolSpinner');
+const txt    = document.getElementById('previewBtnText');
+const status = document.getElementById('symbolStatusText');
+const liveMode = document.getElementById('live_today_only').checked;
+
+btn.disabled = true;
+spin.style.display = 'inline-block';
+txt.textContent = 'Computing...';
+status.textContent = liveMode
+? 'Live Mode: fetching today\'s 09:28 bar only...'
+: 'Fetching 09:28 bars and computing option symbols...';
+
+try {
+const vals = getFormValues();
+if (liveMode) vals.n_bars = 500; // override for today-only
+const resp = await fetch('/api/preview_symbols', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(vals)
+});
+const data = await resp.json();
+
+if (!resp.ok || data.error) {
+status.textContent = 'Error: ' + (data.error || 'Unknown error');
+document.getElementById('symbolTableWrap').innerHTML =
+`<div class="symbol-empty" style="color:var(--error);">&#x26A0; ${data.error || 'Failed to fetch symbols'}</div>`;
+} else {
+const shown = liveMode ? data.symbols.slice(-1) : data.symbols; // live = only last (today)
+renderSymbolTable(shown);
+const mode = liveMode ? '&#x26A1; Live (today only)' : 'Historical';
+status.textContent = `${mode} — ${shown.length} day(s) shown. Click badge to copy, or open active contracts in TradingView.`;
+}
+} catch (err) {
+status.textContent = 'Network error: ' + err.message;
+} finally {
+btn.disabled = false;
+spin.style.display = 'none';
+txt.textContent = '&#x1F50D; Preview Symbols';
+}
+}
+
+// ── Extraction ───────────────────────────────────────────────────────
+async function startExtraction() {
+const username        = document.getElementById('username').value.trim();
+const password        = document.getElementById('password').value.trim();
+const symbol          = document.getElementById('symbol').value.trim();
+const exchange        = document.getElementById('exchange').value.trim();
+const interval        = document.getElementById('interval').value;
+const liveMode        = document.getElementById('live_today_only').checked;
+const n_bars          = liveMode ? 500 : parseInt(document.getElementById('n_bars').value);
+const filename        = document.getElementById('filename').value.trim();
+const time_filter     = liveMode ? '0928'
+: document.querySelector('input[name="time_filter"]:checked').value;
+const strike_offset   = parseInt(document.getElementById('strike_offset').value) || 100;
+const google_sheet_url = document.getElementById('google_sheet_url').value.trim();
+
+localStorage.setItem('google_sheet_url', google_sheet_url);
+
+if (!symbol || !exchange || !filename) {
+addLog('Validation failed. Please verify Symbol, Exchange, and Filename.', 'error');
+return;
+}
+
+setExtractingState(true);
+addLog(`Initiating extraction job for ${symbol}:${exchange}...`, 'info');
+
+// Reset symbol panel
+document.getElementById('symbolStatusText').textContent = 'Computing symbols during extraction...';
+document.getElementById('symbolTableWrap').innerHTML =
+'<div class="symbol-empty">&#x23F3; Symbols will appear here as each trading day is processed...</div>';
+
+// Show live preview sync badge & clear preview bodies
+document.getElementById('previewLiveBadge').style.display = 'inline-flex';
+document.getElementById('previewSummaryBody').innerHTML = 
+'<tr><td colspan="12" class="symbol-empty">🔄 Syncing strategy summary data from TradingView...</td></tr>';
+document.getElementById('previewCandlesBody').innerHTML = 
+'<tr><td colspan="9" class="symbol-empty">🔄 Syncing today\'s 5m candles...</td></tr>';
+
+try {
+const response = await fetch('/api/extract', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ username, password, symbol, exchange, interval,
+n_bars, filename, time_filter, strike_offset, google_sheet_url,
+live_today_only: liveMode })
+});
+
+const data = await response.json();
+if (response.status !== 200 || !data.task_id) {
+addLog(data.error || 'Failed to start extraction task', 'error');
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+return;
+}
+
+const taskId = data.task_id;
+addLog(`Job submitted successfully. Task ID: ${taskId}`, 'info');
+
+let lastLogIndex = 0;
+pollInterval = setInterval(async () => {
+try {
+const [pollResp, symResp] = await Promise.all([
+fetch(`/api/task/${taskId}?since=${lastLogIndex}`),
+fetch(`/api/task/${taskId}/symbols`)
+]);
+
+const pollData = await pollResp.json();
+const symData  = await symResp.json();
+
+// Update log console
+if (pollData.new_logs && pollData.new_logs.length > 0) {
+pollData.new_logs.forEach(logObj => addLog(logObj.message, logObj.type));
+lastLogIndex += pollData.new_logs.length;
+}
+
+// Update symbol table in real-time
+if (symData.symbols && symData.symbols.length > 0) {
+// Add expiry_label since live data doesn't include it
+symData.symbols.forEach(r => { r.expiry_label = r.expiry; });
+renderSymbolTable(symData.symbols);
+document.getElementById('symbolStatusText').textContent =
+`Showing ${symData.symbols.length} day(s) — updates live during extraction.`;
+}
+
+// Update preview tables in real-time
+if (pollData.preview_summary && pollData.preview_summary.length > 0) {
+renderPreviewSummaryTable(pollData.preview_summary);
+}
+if (pollData.preview_live_5m && pollData.preview_live_5m.length > 0) {
+renderPreviewLive5mTable(pollData.preview_live_5m);
+}
+
+if (pollData.status === 'completed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+addLog('Job finished. Export completed successfully. Starting file download...', 'success');
+document.getElementById('symbolStatusText').textContent =
+`Extraction complete. ${symData.symbols ? symData.symbols.length : ''} trading day(s) processed.`;
+window.location.href = `/api/download/${taskId}`;
+} else if (pollData.status === 'failed') {
+clearInterval(pollInterval);
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+addLog(`Job failed: ${pollData.error}`, 'error');
+}
+
+} catch (err) {
+clearInterval(pollInterval);
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+addLog(`Polling failed: ${err.message}`, 'error');
+}
+}, 500);
+
+} catch (err) {
+addLog(`Network error starting task: ${err.message}`, 'error');
+setExtractingState(false);
+document.getElementById('previewLiveBadge').style.display = 'none';
+}
+}
+</script>
+</body>
+</html>
+
